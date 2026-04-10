@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>LogoAssist — Diagnoza</title>
+<style>
+body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; padding: 20px; }
+h1 { color: #2c5f8a; }
+label { display: block; margin-top: 15px; font-weight: bold; }
+input, select, textarea { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; }
+.checkboxes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 5px; }
+.checkboxes label { font-weight: normal; display: flex; align-items: center; gap: 5px; }
+button { margin-top: 25px; background: #2c5f8a; color: white; padding: 12px 30px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; }
+button:hover { background: #1a4a6e; }
+#wynik { margin-top: 30px; padding: 20px; background: #f0f7ff; border-radius: 8px; display: none; }
+#wynik h2 { color: #2c5f8a; }
+#loading { display: none; margin-top: 20px; color: #666; }
+</style>
+</head>
+<body>
+
+<h1>LogoAssist — Asystent Diagnozy Logopedycznej</h1>
+
+<form id="formularz">
+
+<label>Numer pacjenta</label>
+<input type="number" id="numer_pacjenta" placeholder="np. 001">
+
+<label>Wiek (lata)</label>
+<input type="number" id="wiek" placeholder="np. 5" required>
+
+<label>Płeć</label>
+<select id="plec">
+  <option value="">— wybierz —</option>
+  <option>dziewczynka / kobieta</option>
+  <option>chłopiec / mężczyzna</option>
+</select>
+
+<label>Powód wizyty</label>
+<select id="powod_wizyty">
+  <option value="">— wybierz —</option>
+  <option>wada wymowy</option>
+  <option>opóźnienie mowy</option>
+  <option>jąkanie</option>
+  <option>zaburzenia głosu</option>
+  <option>inne</option>
+</select>
+
+<label>Głoski z nieprawidłową realizacją</label>
+<div class="checkboxes">
+  <label><input type="checkbox" value="sz/cz/ż/dż"> sz/cz/ż/dż</label>
+  <label><input type="checkbox" value="s/c/z/dz"> s/c/z/dz</label>
+  <label><input type="checkbox" value="r"> r</label>
+  <label><input type="checkbox" value="l"> l</label>
+  <label><input type="checkbox" value="k/g"> k/g</label>
+  <label><input type="checkbox" value="p/b/m"> p/b/m</label>
+  <label><input type="checkbox" value="t/d/n"> t/d/n</label>
+  <label><input type="checkbox" value="inne"> inne</label>
+</div>
+
+<label>Uwagi diagnostyczne</label>
+<textarea id="uwagi" rows="4" placeholder="Dodatkowe obserwacje, wywiad..."></textarea>
+
+<button type="submit">Generuj diagnozę →</button>
+</form>
+
+<div id="loading">⏳ Generuję diagnozę... może potrwać 30-60 sekund.</div>
+
+<div id="wynik">
+  <h2>Wynik diagnozy</h2>
+  <pre id="wynik_tekst" style="white-space: pre-wrap; font-family: Arial;"></pre>
+</div>
+
+<script>
+const WEBHOOK_URL = "http://74.248.233.176:5678/webhook/f14067e9-73eb-49db-a642-c352e2da1bbc";
+
+document.getElementById('formularz').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const gloskaChecked = [...document.querySelectorAll('.checkboxes input:checked')]
+    .map(cb => cb.value);
+
+  const dane = {
+    numer_pacjenta: document.getElementById('numer_pacjenta').value,
+    wiek: document.getElementById('wiek').value,
+    plec: document.getElementById('plec').value,
+    powod_wizyty: document.getElementById('powod_wizyty').value,
+    gloskaChecked,
+    uwagi: document.getElementById('uwagi').value
+  };
+
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('wynik').style.display = 'none';
+
+  try {
+    const response = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dane)
+    });
+
+    const wynik = await response.json();
+    document.getElementById('wynik_tekst').textContent =
+      JSON.stringify(wynik, null, 2);
+    document.getElementById('wynik').style.display = 'block';
+  } catch(err) {
+    document.getElementById('wynik_tekst').textContent = 'Błąd: ' + err.message;
+    document.getElementById('wynik').style.display = 'block';
+  } finally {
+    document.getElementById('loading').style.display = 'none';
+  }
+});
+</script>
+
+</body>
+</html>

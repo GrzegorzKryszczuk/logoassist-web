@@ -136,7 +136,7 @@
       <div class="field"><label>Logopeda prowadzący</label><input type="text" id="logopeda" placeholder="Imię i nazwisko"></div>
     </div>
     <div class="grid-3">
-      <div class="field"><label>Numer pacjenta</label><input type="text" id="numer_pacjenta" placeholder="Numer nadaje logopeda"></div>
+      <div class="field"><label>Numer pacjenta</label><input type="text" id="numer_pacjenta" placeholder="np. 001"></div>
       <div class="field"><label>Wiek (lata)</label><input type="number" id="wiek" min="0" max="18" placeholder="np. 5" required></div>
       <div class="field"><label>Klasa / grupa</label><input type="text" id="klasa" placeholder="np. gr. Motylki"></div>
     </div>
@@ -336,7 +336,7 @@
       <label class="cb-item"><input type="checkbox" value="Neurolog"> Neurolog</label>
       <label class="cb-item"><input type="checkbox" value="Psycholog"> Psycholog</label>
       <label class="cb-item"><input type="checkbox" value="Integracja sensoryczna (SI)"> SI</label>
-      <label class="cb-item"><input type="checkbox" value="Foniatr"> Foniatra</label>
+      <label class="cb-item"><input type="checkbox" value="Foniatr"> Foniatr</label>
       <label class="cb-item"><input type="checkbox" value="Psychiatra dziecięcy"> Psychiatra</label>
     </div>
     <div class="field" style="margin-top: 14px;"><label>Uwagi do konsultacji</label><textarea id="uwagi_konsultacje" placeholder="Wyniki badań, skierowania, zalecenia specjalistów..."></textarea></div>
@@ -493,17 +493,29 @@ function wyswietlWynik(raw, dane) {
     html += `<div class="result-section"><h4>Ocena rozwojowa</h4>${ocena}</div>`;
   }
 
+  // Helper — wyciąga czytelny tekst z elementu który może być stringiem lub obiektem
+  function itemToText(item) {
+    if (typeof item === 'string') return item;
+    if (typeof item === 'object' && item !== null) {
+      return item.obszar ? `<strong>${item.obszar}</strong>${item.opis ? ': ' + item.opis : ''}` :
+             item.metoda ? `<strong>${item.metoda}</strong>${item.opis ? ': ' + item.opis : ''}` :
+             item.cel ? item.cel :
+             Object.values(item).filter(v => typeof v === 'string').join(' — ');
+    }
+    return String(item);
+  }
+
   // Obszary
   if (d.obszary_zaburzone?.length || d.obszary_w_normie?.length) {
     html += `<div class="result-section"><h4>Obszary funkcjonowania</h4>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div>
           <p style="font-size:12px;font-weight:700;color:#c53030;margin-bottom:6px">ZABURZONE</p>
-          <div class="tags">${(d.obszary_zaburzone || []).map(a => `<span class="tag tag-red">${a}</span>`).join('')}</div>
+          <div class="tags">${(d.obszary_zaburzone || []).map(a => `<span class="tag tag-red">${itemToText(a)}</span>`).join('')}</div>
         </div>
         <div>
           <p style="font-size:12px;font-weight:700;color:#276749;margin-bottom:6px">W NORMIE</p>
-          <div class="tags">${(d.obszary_w_normie || []).map(a => `<span class="tag tag-green">${a}</span>`).join('')}</div>
+          <div class="tags">${(d.obszary_w_normie || []).map(a => `<span class="tag tag-green">${itemToText(a)}</span>`).join('')}</div>
         </div>
       </div>
     </div>`;
@@ -512,24 +524,34 @@ function wyswietlWynik(raw, dane) {
   // Zalecenia terapeutyczne
   if (d.zalecenia_terapeutyczne) {
     const z = d.zalecenia_terapeutyczne;
+    const renderList = (arr) => (Array.isArray(arr) ? arr : [arr]).map(c => `<li>${itemToText(c)}</li>`).join('');
     html += `<div class="result-section"><h4>Plan terapeutyczny</h4>
       <div class="zalecenia-grid">
-        ${z.cele ? `<div class="zalecenia-box"><h5>Cele terapii</h5><ul>${(Array.isArray(z.cele) ? z.cele : [z.cele]).map(c=>`<li>${c}</li>`).join('')}</ul></div>` : ''}
-        ${z.metody ? `<div class="zalecenia-box"><h5>Metody</h5><ul>${(Array.isArray(z.metody) ? z.metody : [z.metody]).map(c=>`<li>${c}</li>`).join('')}</ul></div>` : ''}
-        ${z.cwiczenia ? `<div class="zalecenia-box"><h5>Ćwiczenia</h5><ul>${(Array.isArray(z.cwiczenia) ? z.cwiczenia : [z.cwiczenia]).map(c=>`<li>${c}</li>`).join('')}</ul></div>` : ''}
-        ${z.cele_krotkoterminowe ? `<div class="zalecenia-box"><h5>Cele krótkoterm.</h5><ul>${z.cele_krotkoterminowe.map(c=>`<li>${c}</li>`).join('')}</ul></div>` : ''}
-        ${z.cele_dlugoterminowe ? `<div class="zalecenia-box"><h5>Cele długoterm.</h5><ul>${z.cele_dlugoterminowe.map(c=>`<li>${c}</li>`).join('')}</ul></div>` : ''}
-        ${z.cwiczenia_domowe ? `<div class="zalecenia-box"><h5>Ćwiczenia domowe</h5><ul>${(Array.isArray(z.cwiczenia_domowe) ? z.cwiczenia_domowe : [z.cwiczenia_domowe]).map(c=>`<li>${c}</li>`).join('')}</ul></div>` : ''}
+        ${z.cele ? `<div class="zalecenia-box"><h5>Cele terapii</h5><ul>${renderList(z.cele)}</ul></div>` : ''}
+        ${z.metody ? `<div class="zalecenia-box"><h5>Metody</h5><ul>${renderList(z.metody)}</ul></div>` : ''}
+        ${z.cwiczenia ? `<div class="zalecenia-box"><h5>Ćwiczenia</h5><ul>${renderList(z.cwiczenia)}</ul></div>` : ''}
+        ${z.cele_krotkoterminowe ? `<div class="zalecenia-box"><h5>Cele krótkoterm.</h5><ul>${renderList(z.cele_krotkoterminowe)}</ul></div>` : ''}
+        ${z.cele_dlugoterminowe ? `<div class="zalecenia-box"><h5>Cele długoterm.</h5><ul>${renderList(z.cele_dlugoterminowe)}</ul></div>` : ''}
+        ${z.cwiczenia_domowe ? `<div class="zalecenia-box"><h5>Ćwiczenia domowe</h5><ul>${renderList(z.cwiczenia_domowe)}</ul></div>` : ''}
       </div>
     </div>`;
   }
 
   // Rokowanie
   if (d.rokowanie) {
-    const rok = typeof d.rokowanie === 'object'
-      ? `<p><strong>${d.rokowanie.prognoza || ''}</strong> — ${d.rokowanie.uzasadnienie || ''}</p>`
-      : `<p>${d.rokowanie}</p>`;
-    html += `<div class="result-section"><h4>Rokowanie</h4>${rok}</div>`;
+    let rokHtml = '';
+    if (typeof d.rokowanie === 'string') {
+      rokHtml = `<p>${d.rokowanie}</p>`;
+    } else if (typeof d.rokowanie === 'object') {
+      rokHtml = d.rokowanie.prognoza ? `<p><strong>${d.rokowanie.prognoza}</strong>${d.rokowanie.uzasadnienie ? ' — ' + d.rokowanie.uzasadnienie : ''}</p>` : '';
+      if (d.rokowanie.czynniki_sprzyjajace?.length) {
+        rokHtml += `<p style="margin-top:8px;font-size:13px;color:#276749"><strong>Czynniki sprzyjające:</strong> ${d.rokowanie.czynniki_sprzyjajace.join(', ')}</p>`;
+      }
+      if (d.rokowanie.czynniki_utrudniajace?.length) {
+        rokHtml += `<p style="margin-top:4px;font-size:13px;color:#c53030"><strong>Czynniki utrudniające:</strong> ${d.rokowanie.czynniki_utrudniajace.join(', ')}</p>`;
+      }
+    }
+    html += `<div class="result-section"><h4>Rokowanie</h4>${rokHtml}</div>`;
   }
 
   // Źródła

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MOWIFY.PL — Karta Diagnozy Logopedycznej</title>
+<title>LogoAssist — Karta Diagnozy Logopedycznej</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; }
@@ -122,7 +122,7 @@
 <body>
 
 <div class="header">
-  <h1>MOWIFY.PL</h1>
+  <h1>LogoAssist</h1>
   <p>Asystent Diagnozy Logopedycznej — oparty na literaturze naukowej</p>
 </div>
 
@@ -345,7 +345,7 @@
   <!-- SEKCJA VI: Dokumenty PDF -->
   <div class="section">
     <div class="section-title"><span>VI</span> Dokumentacja medyczna (PDF)</div>
-    <p style="font-size: 13px; color: #718096; margin-bottom: 14px;">Załącz wyniki badań lub opinie specjalistów w formacie PDF. Usuń wrażliwe dane - imię, nazwisko, adres i PESEL. Pliki są czytane przez AI tylko na potrzeby tej diagnozy i nie są nigdzie zapisywane.</p>
+    <p style="font-size: 13px; color: #718096; margin-bottom: 14px;">Załącz wyniki badań lub opinie specjalistów w formacie PDF. Pliki są czytane przez AI tylko na potrzeby tej diagnozy i nie są nigdzie zapisywane.</p>
 
     <div id="pdfDropzone" style="border: 2px dashed #e2e8f0; border-radius: 10px; padding: 28px; text-align: center; cursor: pointer; background: #fafafa; transition: all 0.2s;" onclick="document.getElementById('pdfInput').click()" ondragover="event.preventDefault();this.style.borderColor='#2c5f8a'" ondragleave="this.style.borderColor='#e2e8f0'" ondrop="handleDrop(event)">
       <div style="font-size: 28px; margin-bottom: 8px;">📄</div>
@@ -603,8 +603,20 @@ function wyswietlWynik(raw, dane) {
   if (d.czynniki_etiologiczne) {
     const ce = d.czynniki_etiologiczne;
     let ceHtml = '';
-    if (ce.wewnetrzne?.length) ceHtml += `<p style="margin-bottom:6px"><strong>Wewnętrzne:</strong> ${ce.wewnetrzne.join(', ')}</p>`;
-    if (ce.zewnetrzne?.length) ceHtml += `<p style="margin-bottom:6px"><strong>Zewnętrzne:</strong> ${ce.zewnetrzne.join(', ')}</p>`;
+    const renderCzynniki = (arr) => {
+      if (!arr?.length) return '';
+      return arr.map(c => {
+        if (typeof c === 'string') return c;
+        if (typeof c === 'object') {
+          const czynnik = c.czynnik || c.nazwa || c.opis || '';
+          const znaczenie = c.znaczenie || c.uzasadnienie || '';
+          return znaczenie ? `<strong>${czynnik}</strong> — ${znaczenie}` : czynnik;
+        }
+        return String(c);
+      }).join('</li><li>');
+    };
+    if (ce.wewnetrzne?.length) ceHtml += `<p style="margin-bottom:6px;font-weight:600;color:#4a5568">Wewnętrzne:</p><ul style="padding-left:16px;margin-bottom:10px"><li>${renderCzynniki(ce.wewnetrzne)}</li></ul>`;
+    if (ce.zewnetrzne?.length) ceHtml += `<p style="margin-bottom:6px;font-weight:600;color:#4a5568">Zewnętrzne:</p><ul style="padding-left:16px;margin-bottom:10px"><li>${renderCzynniki(ce.zewnetrzne)}</li></ul>`;
     if (ce.uwaga) ceHtml += `<p style="font-size:12px;color:#718096">${ce.uwaga}</p>`;
     if (ceHtml) html += `<div class="result-section"><h4>Czynniki etiologiczne</h4>${ceHtml}</div>`;
   }

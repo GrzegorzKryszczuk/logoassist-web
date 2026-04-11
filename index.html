@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LogoAssist — Karta Diagnozy Logopedycznej</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; }
@@ -106,6 +108,23 @@
   .zrodlo-item:last-child { border-bottom: none; }
 
   .disclaimer { font-size: 12px; color: #a0aec0; text-align: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
+
+  .pdf-btn { padding: 8px 20px; background: #276749; border: none; color: white; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; font-family: inherit; }
+  .pdf-btn:hover { background: #1c4532; }
+
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+  .modal-overlay.active { display: flex; }
+  .modal { background: white; border-radius: 16px; padding: 32px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+  .modal h3 { font-size: 18px; color: #1a3d5c; margin-bottom: 12px; }
+  .modal p { font-size: 14px; color: #4a5568; line-height: 1.7; margin-bottom: 20px; }
+  .modal-check { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 24px; padding: 14px; background: #fffbeb; border-radius: 8px; border: 1px solid #f6ad55; }
+  .modal-check input[type="checkbox"] { width: 18px; height: 18px; margin-top: 2px; flex-shrink: 0; cursor: pointer; accent-color: #2c5f8a; }
+  .modal-check label { font-size: 13px; color: #2d3748; line-height: 1.6; cursor: pointer; }
+  .modal-btns { display: flex; gap: 10px; justify-content: flex-end; }
+  .modal-cancel { padding: 10px 20px; background: white; border: 1.5px solid #e2e8f0; color: #718096; border-radius: 8px; cursor: pointer; font-size: 14px; font-family: inherit; }
+  .modal-confirm { padding: 10px 20px; background: #276749; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; font-family: inherit; }
+  .modal-confirm:disabled { background: #a0aec0; cursor: not-allowed; }
 
   @media (max-width: 640px) {
     .grid-2, .grid-3, .zalecenia-grid { grid-template-columns: 1fr; }
@@ -375,9 +394,30 @@
         <div class="result-title">Wynik diagnozy logopedycznej</div>
         <div id="result-meta" style="font-size: 13px; color: #718096; margin-top: 4px;"></div>
       </div>
-      <button class="print-btn" onclick="window.print()">Drukuj / PDF</button>
+      <div style="display:flex;gap:8px">
+        <button class="print-btn" onclick="window.print()">🖨 Drukuj</button>
+        <button class="pdf-btn" onclick="pokazModalPdf()">⬇ Pobierz PDF</button>
+      </div>
     </div>
     <div id="result-content"></div>
+  </div>
+
+  <!-- MODAL ZGODY -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h3>⚠️ Potwierdzenie przed pobraniem</h3>
+      <p>Przed pobraniem raportu prosimy o potwierdzenie, że zapoznałeś się z poniższą informacją:</p>
+      <div class="modal-check">
+        <input type="checkbox" id="modalCheckbox" onchange="document.getElementById('modalConfirmBtn').disabled = !this.checked">
+        <label for="modalCheckbox">
+          Zostałem poinformowany i zgadzam się, że przedstawiona diagnoza ma charakter <strong>wsparcia diagnostycznego dla logopedy</strong> i nie zastępuje pełnego badania klinicznego. Diagnoza wymaga weryfikacji przez uprawnionego specjalistę. Logopeda ponosi pełną odpowiedzialność za ostateczną diagnozę i plan terapii.
+        </label>
+      </div>
+      <div class="modal-btns">
+        <button class="modal-cancel" onclick="zamknijModal()">Anuluj</button>
+        <button class="modal-confirm" id="modalConfirmBtn" disabled onclick="pobierzPdf()">Pobierz PDF</button>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -708,6 +748,73 @@ function wyswietlWynik(raw, dane) {
   document.getElementById('result').style.display = 'block';
   document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
 }
+
+// Modal i PDF
+function pokazModalPdf() {
+  document.getElementById('modalCheckbox').checked = false;
+  document.getElementById('modalConfirmBtn').disabled = true;
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+function zamknijModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+}
+
+async function pobierzPdf() {
+  zamknijModal();
+  const btn = document.querySelector('.pdf-btn');
+  btn.textContent = '⏳ Generuję PDF...';
+  btn.disabled = true;
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const element = document.getElementById('result');
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+    const imgWidth = pageWidth - margin * 2;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    const pageContentHeight = pageHeight - margin * 2;
+
+    let renderedHeight = 0;
+    while (renderedHeight < imgHeight) {
+      if (renderedHeight > 0) pdf.addPage();
+      const sliceHeight = Math.min(pageContentHeight, imgHeight - renderedHeight);
+      const srcY = (renderedHeight / imgHeight) * canvas.height;
+      const srcH = (sliceHeight / imgHeight) * canvas.height;
+
+      const tmp = document.createElement('canvas');
+      tmp.width = canvas.width;
+      tmp.height = srcH;
+      tmp.getContext('2d').drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
+      pdf.addImage(tmp.toDataURL('image/png'), 'PNG', margin, margin, imgWidth, sliceHeight);
+      renderedHeight += sliceHeight;
+    }
+
+    const meta = document.getElementById('result-meta').textContent;
+    pdf.save(`LogoAssist_${meta.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
+  } catch(e) {
+    alert('Błąd generowania PDF: ' + e.message);
+  } finally {
+    btn.textContent = '⬇ Pobierz PDF';
+    btn.disabled = false;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('modalOverlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('modalOverlay')) zamknijModal();
+  });
+});
 </script>
 </body>
 </html>

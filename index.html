@@ -336,7 +336,7 @@
       <label class="cb-item"><input type="checkbox" value="Neurolog"> Neurolog</label>
       <label class="cb-item"><input type="checkbox" value="Psycholog"> Psycholog</label>
       <label class="cb-item"><input type="checkbox" value="Integracja sensoryczna (SI)"> SI</label>
-      <label class="cb-item"><input type="checkbox" value="Foniatr"> Foniatr</label>
+      <label class="cb-item"><input type="checkbox" value="Foniatra"> Foniatra</label>
       <label class="cb-item"><input type="checkbox" value="Psychiatra dziecięcy"> Psychiatra</label>
     </div>
     <div class="field" style="margin-top: 14px;"><label>Uwagi do konsultacji</label><textarea id="uwagi_konsultacje" placeholder="Wyniki badań, skierowania, zalecenia specjalistów..."></textarea></div>
@@ -386,9 +386,16 @@ document.querySelectorAll('.score-btns').forEach(group => {
 });
 
 document.querySelectorAll('.cb-item').forEach(item => {
-  item.addEventListener('click', () => {
-    item.classList.toggle('active');
-    item.querySelector('input').checked = item.classList.contains('active');
+  item.addEventListener('click', (e) => {
+    // Zapobiegaj podwójnemu zdarzeniu gdy kliknięto bezpośrednio w input
+    if (e.target.tagName === 'INPUT') {
+      item.classList.toggle('active', e.target.checked);
+      return;
+    }
+    e.preventDefault();
+    const input = item.querySelector('input');
+    input.checked = !input.checked;
+    item.classList.toggle('active', input.checked);
   });
 });
 

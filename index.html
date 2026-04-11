@@ -2,115 +2,556 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>LogoAssist — Diagnoza</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LogoAssist — Karta Diagnozy Logopedycznej</title>
 <style>
-body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; padding: 20px; }
-h1 { color: #2c5f8a; }
-label { display: block; margin-top: 15px; font-weight: bold; }
-input, select, textarea { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; }
-.checkboxes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 5px; }
-.checkboxes label { font-weight: normal; display: flex; align-items: center; gap: 5px; }
-button { margin-top: 25px; background: #2c5f8a; color: white; padding: 12px 30px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; }
-button:hover { background: #1a4a6e; }
-#wynik { margin-top: 30px; padding: 20px; background: #f0f7ff; border-radius: 8px; display: none; }
-#wynik h2 { color: #2c5f8a; }
-#loading { display: none; margin-top: 20px; color: #666; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; }
+
+  .header { background: linear-gradient(135deg, #2c5f8a, #1a3d5c); color: white; padding: 24px 32px; }
+  .header h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+  .header p { font-size: 14px; opacity: 0.8; }
+
+  .container { max-width: 900px; margin: 32px auto; padding: 0 20px 60px; }
+
+  .section { background: white; border-radius: 12px; padding: 28px; margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .section-title { font-size: 15px; font-weight: 700; color: #2c5f8a; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0; display: flex; align-items: center; gap: 8px; }
+  .section-title span { background: #2c5f8a; color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; font-weight: 600; color: #4a5568; margin-bottom: 5px; }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 9px 12px; font-size: 14px;
+    border: 1.5px solid #e2e8f0; border-radius: 8px;
+    background: #fafafa; color: #1a202c; font-family: inherit;
+    transition: border-color 0.2s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: none; border-color: #2c5f8a; background: white;
+  }
+  .field textarea { resize: vertical; min-height: 70px; }
+
+  .score-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .score-row { display: flex; align-items: center; gap: 12px; }
+  .score-label { font-size: 13px; color: #4a5568; min-width: 220px; }
+  .score-btns { display: flex; gap: 6px; }
+  .score-btn {
+    width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid #e2e8f0;
+    background: #fafafa; cursor: pointer; font-size: 13px; font-weight: 600;
+    color: #718096; transition: all 0.15s; font-family: inherit;
+  }
+  .score-btn:hover { border-color: #2c5f8a; }
+  .score-btn.active-0 { background: #fff5f5; border-color: #fc8181; color: #c53030; }
+  .score-btn.active-1 { background: #fffbeb; border-color: #f6ad55; color: #c05621; }
+  .score-btn.active-2 { background: #f0fff4; border-color: #68d391; color: #276749; }
+  .score-legend { font-size: 12px; color: #a0aec0; margin-top: 6px; }
+
+  .checkboxes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  .cb-item {
+    padding: 6px 12px; border-radius: 20px; border: 1.5px solid #e2e8f0;
+    cursor: pointer; font-size: 13px; background: #fafafa; color: #4a5568;
+    transition: all 0.15s; user-select: none;
+  }
+  .cb-item.active { background: #ebf4ff; border-color: #2c5f8a; color: #2c5f8a; font-weight: 600; }
+  .cb-item input { display: none; }
+
+  .submit-btn {
+    width: 100%; padding: 16px; background: #2c5f8a; color: white;
+    border: none; border-radius: 12px; font-size: 16px; font-weight: 700;
+    cursor: pointer; transition: background 0.2s; font-family: inherit;
+    margin-top: 8px;
+  }
+  .submit-btn:hover { background: #1a3d5c; }
+  .submit-btn:disabled { background: #a0aec0; cursor: not-allowed; }
+
+  .loading { display: none; text-align: center; padding: 40px; background: white; border-radius: 12px; margin-top: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .spinner { width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: #2c5f8a; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .result { display: none; background: white; border-radius: 12px; padding: 32px; margin-top: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .result-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+  .result-title { font-size: 20px; font-weight: 700; color: #2c5f8a; }
+  .print-btn { padding: 8px 20px; background: white; border: 1.5px solid #2c5f8a; color: #2c5f8a; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; font-family: inherit; }
+  .print-btn:hover { background: #ebf4ff; }
+
+  .diagnoza-card { background: #ebf4ff; border-left: 4px solid #2c5f8a; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+  .diagnoza-card h3 { font-size: 18px; color: #1a3d5c; margin-bottom: 6px; }
+  .diagnoza-card .kod { font-size: 13px; color: #4a5568; margin-bottom: 8px; }
+  .pewnosc-badge { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; margin-bottom: 10px; }
+  .pewnosc-wysoka { background: #f0fff4; color: #276749; border: 1px solid #68d391; }
+  .pewnosc-srednia { background: #fffbeb; color: #c05621; border: 1px solid #f6ad55; }
+  .pewnosc-niska { background: #fff5f5; color: #c53030; border: 1px solid #fc8181; }
+
+  .result-section { margin-bottom: 20px; }
+  .result-section h4 { font-size: 12px; font-weight: 700; color: #718096; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .result-section p { font-size: 14px; line-height: 1.7; color: #2d3748; }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { padding: 4px 12px; border-radius: 20px; font-size: 13px; }
+  .tag-red { background: #fff5f5; color: #c53030; border: 1px solid #fc8181; }
+  .tag-green { background: #f0fff4; color: #276749; border: 1px solid #68d391; }
+
+  .zalecenia-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .zalecenia-box { background: #f7fafc; border-radius: 8px; padding: 14px; }
+  .zalecenia-box h5 { font-size: 12px; font-weight: 700; color: #4a5568; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+  .zalecenia-box ul { padding-left: 16px; }
+  .zalecenia-box li { font-size: 13px; color: #2d3748; line-height: 1.6; margin-bottom: 4px; }
+
+  .zrodla { background: #f7fafc; border-radius: 8px; padding: 16px; }
+  .zrodla h4 { font-size: 12px; font-weight: 700; color: #718096; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+  .zrodlo-item { font-size: 13px; color: #4a5568; padding: 6px 0; border-bottom: 1px solid #e2e8f0; }
+  .zrodlo-item:last-child { border-bottom: none; }
+
+  .disclaimer { font-size: 12px; color: #a0aec0; text-align: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
+
+  @media (max-width: 640px) {
+    .grid-2, .grid-3, .zalecenia-grid { grid-template-columns: 1fr; }
+    .score-row { flex-wrap: wrap; }
+    .score-label { min-width: 100%; }
+  }
+
+  @media print {
+    .header, .submit-btn, .print-btn { display: none; }
+    .result { box-shadow: none; }
+  }
 </style>
 </head>
 <body>
 
-<h1>LogoAssist — Asystent Diagnozy Logopedycznej</h1>
-
-<form id="formularz">
-
-<label>Numer pacjenta</label>
-<input type="number" id="numer_pacjenta" placeholder="np. 001">
-
-<label>Wiek (lata)</label>
-<input type="number" id="wiek" placeholder="np. 5" required>
-
-<label>Płeć</label>
-<select id="plec">
-  <option value="">— wybierz —</option>
-  <option>dziewczynka / kobieta</option>
-  <option>chłopiec / mężczyzna</option>
-</select>
-
-<label>Powód wizyty</label>
-<select id="powod_wizyty">
-  <option value="">— wybierz —</option>
-  <option>wada wymowy</option>
-  <option>opóźnienie mowy</option>
-  <option>jąkanie</option>
-  <option>zaburzenia głosu</option>
-  <option>inne</option>
-</select>
-
-<label>Głoski z nieprawidłową realizacją</label>
-<div class="checkboxes">
-  <label><input type="checkbox" value="sz/cz/ż/dż"> sz/cz/ż/dż</label>
-  <label><input type="checkbox" value="s/c/z/dz"> s/c/z/dz</label>
-  <label><input type="checkbox" value="r"> r</label>
-  <label><input type="checkbox" value="l"> l</label>
-  <label><input type="checkbox" value="k/g"> k/g</label>
-  <label><input type="checkbox" value="p/b/m"> p/b/m</label>
-  <label><input type="checkbox" value="t/d/n"> t/d/n</label>
-  <label><input type="checkbox" value="inne"> inne</label>
+<div class="header">
+  <h1>LogoAssist</h1>
+  <p>Asystent Diagnozy Logopedycznej — oparty na literaturze naukowej</p>
 </div>
 
-<label>Uwagi diagnostyczne</label>
-<textarea id="uwagi" rows="4" placeholder="Dodatkowe obserwacje, wywiad..."></textarea>
+<div class="container">
 
-<button type="submit">Generuj diagnozę →</button>
-</form>
+  <!-- SEKCJA I: Dane ogólne -->
+  <div class="section">
+    <div class="section-title"><span>I</span> Dane ogólne</div>
+    <div class="grid-3">
+      <div class="field"><label>Imię i nazwisko dziecka</label><input type="text" id="imie_nazwisko" placeholder="Imię Nazwisko"></div>
+      <div class="field"><label>Data urodzenia</label><input type="date" id="data_urodzenia"></div>
+      <div class="field"><label>Wiek (lata)</label><input type="number" id="wiek" min="0" max="18" placeholder="np. 5" required></div>
+    </div>
+    <div class="grid-3">
+      <div class="field"><label>PESEL / identyfikator</label><input type="text" id="pesel" placeholder="opcjonalnie"></div>
+      <div class="field"><label>Klasa / grupa</label><input type="text" id="klasa" placeholder="np. gr. Motylki"></div>
+      <div class="field"><label>Placówka</label><input type="text" id="placowka" placeholder="Przedszkole / Szkoła"></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Data diagnozy</label><input type="date" id="data_diagnozy"></div>
+      <div class="field"><label>Logopeda prowadzący</label><input type="text" id="logopeda" placeholder="Imię i nazwisko"></div>
+    </div>
+  </div>
 
-<div id="loading">⏳ Generuję diagnozę... może potrwać 30-60 sekund.</div>
+  <!-- SEKCJA II: Wywiad -->
+  <div class="section">
+    <div class="section-title"><span>II</span> Wywiad z rodzicami / opiekunami</div>
+    <div class="grid-2">
+      <div class="field"><label>1. Przebieg ciąży i porodu</label><textarea id="ciaza_porod" placeholder="Czynniki ryzyka, komplikacje..."></textarea></div>
+      <div class="field"><label>2. Leki / choroby matki w ciąży</label><textarea id="leki_choroby" placeholder="Jeśli dotyczy..."></textarea></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>3. Rozwój motoryczny</label><textarea id="rozwoj_motoryczny" placeholder="Raczkowanie, siadanie, chodzenie..."></textarea></div>
+      <div class="field"><label>4. Rozwój mowy</label><textarea id="rozwoj_mowy" placeholder="Głużenie, gaworzenie, pierwsze słowa, zdania..."></textarea></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>5. Czynności fizjologiczne</label><textarea id="czynnosci_fizjo" placeholder="Ssanie, karmienie, połykanie..."></textarea></div>
+      <div class="field"><label>6. Nawyki żywieniowe</label><textarea id="nawyki" placeholder="Np. długie karmienie piersią, smoczek, papka..."></textarea></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>7. Przebyte choroby / schorzenia</label><textarea id="choroby" placeholder="Zapalenia ucha, migdałki, adenoid..."></textarea></div>
+      <div class="field"><label>8. Dokumentacja medyczna</label><textarea id="dokumentacja" placeholder="Wyniki badań, opinie specjalistów..."></textarea></div>
+    </div>
+    <div class="grid-3">
+      <div class="field"><label>9. Wada wymowy w rodzinie</label>
+        <select id="wada_rodzina">
+          <option value="">— wybierz —</option>
+          <option>Tak</option>
+          <option>Nie</option>
+          <option>Nieznane</option>
+        </select>
+      </div>
+      <div class="field"><label>10. Sposób oddychania</label>
+        <select id="oddychanie_wywiad">
+          <option value="">— wybierz —</option>
+          <option>Przez nos (prawidłowe)</option>
+          <option>Przez usta</option>
+          <option>Mieszane</option>
+        </select>
+      </div>
+      <div class="field"><label>11. Inne informacje</label><input type="text" id="inne_wywiad" placeholder="Dodatkowe uwagi..."></div>
+    </div>
+  </div>
 
-<div id="wynik">
-  <h2>Wynik diagnozy</h2>
-  <pre id="wynik_tekst" style="white-space: pre-wrap; font-family: Arial;"></pre>
+  <!-- SEKCJA III: Badanie logopedyczne -->
+  <div class="section">
+    <div class="section-title"><span>III</span> Wstępne badanie logopedyczne / obserwacja</div>
+
+    <div class="score-grid">
+      <p class="score-legend">Ocena: 0 = zaburzone / nieprawidłowe &nbsp;·&nbsp; 1 = z trudnościami / pogranicze normy &nbsp;·&nbsp; 2 = prawidłowe</p>
+
+      <div class="score-row">
+        <span class="score-label">1. Zachowanie i koncentracja</span>
+        <div class="score-btns" data-key="zachowanie">
+          <button class="score-btn" data-v="0">0</button>
+          <button class="score-btn" data-v="1">1</button>
+          <button class="score-btn" data-v="2">2</button>
+        </div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">2. Rozumienie mowy</span>
+        <div class="score-btns" data-key="rozumienie">
+          <button class="score-btn" data-v="0">0</button>
+          <button class="score-btn" data-v="1">1</button>
+          <button class="score-btn" data-v="2">2</button>
+        </div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">3. Artykulacja / wymowa</span>
+        <div class="score-btns" data-key="artykulacja_ocena">
+          <button class="score-btn" data-v="0">0</button>
+          <button class="score-btn" data-v="1">1</button>
+          <button class="score-btn" data-v="2">2</button>
+        </div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">4. Sprawność narządów artykulacyjnych</span>
+        <div class="score-btns" data-key="narzady">
+          <button class="score-btn" data-v="0">0</button>
+          <button class="score-btn" data-v="1">1</button>
+          <button class="score-btn" data-v="2">2</button>
+        </div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">5. Sposób oddychania</span>
+        <div class="score-btns" data-key="oddychanie_badanie">
+          <button class="score-btn" data-v="0">0</button>
+          <button class="score-btn" data-v="1">1</button>
+          <button class="score-btn" data-v="2">2</button>
+        </div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">6. Połykanie / gryzienie / żucie</span>
+        <div class="score-btns" data-key="polykanie">
+          <button class="score-btn" data-v="0">0</button>
+          <button class="score-btn" data-v="1">1</button>
+          <button class="score-btn" data-v="2">2</button>
+        </div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">7. Słuch fonemowy</span>
+        <div class="score-btns" data-key="sluch">
+          <button class="score-btn" data-v="0">0</button>
+          <button class="score-btn" data-v="1">1</button>
+          <button class="score-btn" data-v="2">2</button>
+        </div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">8. Nadawanie mowy (ekspresja)</span>
+        <div class="score-btns" data-key="nadawanie">
+          <button class="score-btn" data-v="0">0</button>
+          <button class="score-btn" data-v="1">1</button>
+          <button class="score-btn" data-v="2">2</button>
+        </div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">9. Pamięć słuchowa / sekwencyjna</span>
+        <div class="score-btns" data-key="pamiec">
+          <button class="score-btn" data-v="0">0</button>
+          <button class="score-btn" data-v="1">1</button>
+          <button class="score-btn" data-v="2">2</button>
+        </div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">10. Lateralizacja</span>
+        <div class="score-btns" data-key="lateralizacja">
+          <button class="score-btn" data-v="0">0</button>
+          <button class="score-btn" data-v="1">1</button>
+          <button class="score-btn" data-v="2">2</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 20px;">
+      <div class="field">
+        <label>Głoski z nieprawidłową realizacją</label>
+        <div class="checkboxes" id="gloskaGrp">
+          <label class="cb-item"><input type="checkbox" value="sz, cz, ż, dż (sygmatyzm szumiący)"> sz/cz/ż/dż</label>
+          <label class="cb-item"><input type="checkbox" value="s, c, z, dz (sygmatyzm świszczący)"> s/c/z/dz</label>
+          <label class="cb-item"><input type="checkbox" value="r (rotacyzm)"> r</label>
+          <label class="cb-item"><input type="checkbox" value="l (lambdacyzm)"> l</label>
+          <label class="cb-item"><input type="checkbox" value="k, g (kappacyzm/gammacyzm)"> k/g</label>
+          <label class="cb-item"><input type="checkbox" value="p, b, m"> p/b/m</label>
+          <label class="cb-item"><input type="checkbox" value="t, d, n"> t/d/n</label>
+          <label class="cb-item"><input type="checkbox" value="f, w"> f/w</label>
+          <label class="cb-item"><input type="checkbox" value="głoski dźwięczne (ubezdźwięcznianie)"> ubezdźw.</label>
+          <label class="cb-item"><input type="checkbox" value="inne głoski"> inne</label>
+        </div>
+      </div>
+      <div class="field"><label>Uwagi do artykulacji (typ błędu, substytucje, elizje)</label><textarea id="uwagi_artykulacja" placeholder="np. substytucja sz→s, elizja spółgłosek w wygłosie, sygmatyzm boczny..."></textarea></div>
+    </div>
+
+    <div class="grid-2" style="margin-top: 12px;">
+      <div class="field"><label>Napięcie mięśniowe jamy ustnej</label>
+        <select id="napiecie">
+          <option value="">— nie oceniono —</option>
+          <option>Norma</option>
+          <option>Hipotonia (obniżone)</option>
+          <option>Hipertonia (wzmożone)</option>
+        </select>
+      </div>
+      <div class="field"><label>Wolne uwagi z badania</label><input type="text" id="uwagi_badanie" placeholder="Dodatkowe obserwacje..."></div>
+    </div>
+  </div>
+
+  <!-- SEKCJA IV: Powód wizyty -->
+  <div class="section">
+    <div class="section-title"><span>IV</span> Powód zgłoszenia</div>
+    <div class="grid-2">
+      <div class="field"><label>Główny powód wizyty</label>
+        <select id="powod_wizyty">
+          <option value="">— wybierz —</option>
+          <option>Wada wymowy</option>
+          <option>Opóźniony rozwój mowy</option>
+          <option>Jąkanie / giełkot</option>
+          <option>Zaburzenia głosu</option>
+          <option>Problemy z połykaniem</option>
+          <option>Afazja / dysfazja</option>
+          <option>Autyzm / ASD</option>
+          <option>Niepełnosprawność intelektualna</option>
+          <option>Inne</option>
+        </select>
+      </div>
+      <div class="field"><label>Dodatkowy opis problemu</label><input type="text" id="opis_problemu" placeholder="np. dziecko nie wymawia r, zastępuje przez l..."></div>
+    </div>
+  </div>
+
+  <!-- SEKCJA V: Konsultacje -->
+  <div class="section">
+    <div class="section-title"><span>V</span> Konsultacje i badania dodatkowe</div>
+    <p style="font-size: 13px; color: #718096; margin-bottom: 14px;">Zaznacz odbyte lub zalecane konsultacje:</p>
+    <div class="checkboxes" id="konsultacjeGrp">
+      <label class="cb-item"><input type="checkbox" value="Audiolog"> Audiolog</label>
+      <label class="cb-item"><input type="checkbox" value="Laryngolog"> Laryngolog</label>
+      <label class="cb-item"><input type="checkbox" value="Ortodonta"> Ortodonta</label>
+      <label class="cb-item"><input type="checkbox" value="Neurolog"> Neurolog</label>
+      <label class="cb-item"><input type="checkbox" value="Psycholog"> Psycholog</label>
+      <label class="cb-item"><input type="checkbox" value="Integracja sensoryczna (SI)"> SI</label>
+      <label class="cb-item"><input type="checkbox" value="Foniatr"> Foniatr</label>
+      <label class="cb-item"><input type="checkbox" value="Psychiatra dziecięcy"> Psychiatra</label>
+    </div>
+    <div class="field" style="margin-top: 14px;"><label>Uwagi do konsultacji</label><textarea id="uwagi_konsultacje" placeholder="Wyniki badań, skierowania, zalecenia specjalistów..."></textarea></div>
+  </div>
+
+  <button class="submit-btn" id="submitBtn" onclick="generujDiagnoze()">
+    Generuj diagnozę logopedyczną →
+  </button>
+
+  <!-- LOADING -->
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <p style="color: #4a5568; font-size: 15px; font-weight: 600;">Analizuję dane i przeszukuję bazę wiedzy...</p>
+    <p style="color: #a0aec0; font-size: 13px; margin-top: 6px;">To może potrwać 30–60 sekund</p>
+  </div>
+
+  <!-- WYNIK -->
+  <div class="result" id="result">
+    <div class="result-header">
+      <div>
+        <div class="result-title">Wynik diagnozy logopedycznej</div>
+        <div id="result-meta" style="font-size: 13px; color: #718096; margin-top: 4px;"></div>
+      </div>
+      <button class="print-btn" onclick="window.print()">Drukuj / PDF</button>
+    </div>
+    <div id="result-content"></div>
+  </div>
+
 </div>
 
 <script>
 const WEBHOOK_URL = "https://logoassist-n8n.grayground-769ded21.swedencentral.azurecontainerapps.io/webhook/4b1436ae-f528-4392-bd20-8f3d1529ab54";
 
-document.getElementById('formularz').addEventListener('submit', async function(e) {
-  e.preventDefault();
+const scores = {};
 
-  const gloskaChecked = [...document.querySelectorAll('.checkboxes input:checked')]
-    .map(cb => cb.value);
+document.querySelectorAll('.score-btns').forEach(group => {
+  const key = group.dataset.key;
+  scores[key] = null;
+  group.querySelectorAll('.score-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const v = parseInt(btn.dataset.v);
+      scores[key] = v;
+      group.querySelectorAll('.score-btn').forEach(b => b.className = 'score-btn');
+      btn.classList.add('active-' + v);
+    });
+  });
+});
+
+document.querySelectorAll('.cb-item').forEach(item => {
+  item.addEventListener('click', () => {
+    item.classList.toggle('active');
+    item.querySelector('input').checked = item.classList.contains('active');
+  });
+});
+
+async function generujDiagnoze() {
+  const wiek = document.getElementById('wiek').value;
+  if (!wiek) { alert('Uzupełnij wiek pacjenta'); return; }
+
+  const gloskaChecked = [...document.querySelectorAll('#gloskaGrp input:checked')].map(c => c.value);
+  const konsultacje = [...document.querySelectorAll('#konsultacjeGrp input:checked')].map(c => c.value);
 
   const dane = {
-    numer_pacjenta: document.getElementById('numer_pacjenta').value,
-    wiek: document.getElementById('wiek').value,
-    plec: document.getElementById('plec').value,
-    powod_wizyty: document.getElementById('powod_wizyty').value,
+    // Dane ogólne
+    imie_nazwisko: document.getElementById('imie_nazwisko').value,
+    wiek: parseInt(wiek),
+    data_urodzenia: document.getElementById('data_urodzenia').value,
+    klasa: document.getElementById('klasa').value,
+    placowka: document.getElementById('placowka').value,
+    // Wywiad
+    ciaza_porod: document.getElementById('ciaza_porod').value,
+    leki_choroby: document.getElementById('leki_choroby').value,
+    rozwoj_motoryczny: document.getElementById('rozwoj_motoryczny').value,
+    rozwoj_mowy: document.getElementById('rozwoj_mowy').value,
+    czynnosci_fizjo: document.getElementById('czynnosci_fizjo').value,
+    nawyki: document.getElementById('nawyki').value,
+    choroby: document.getElementById('choroby').value,
+    wada_rodzina: document.getElementById('wada_rodzina').value,
+    oddychanie_wywiad: document.getElementById('oddychanie_wywiad').value,
+    inne_wywiad: document.getElementById('inne_wywiad').value,
+    // Badanie
+    scores,
     gloskaChecked,
-    uwagi: document.getElementById('uwagi').value
+    uwagi_artykulacja: document.getElementById('uwagi_artykulacja').value,
+    napiecie: document.getElementById('napiecie').value,
+    uwagi_badanie: document.getElementById('uwagi_badanie').value,
+    // Powód
+    powod_wizyty: document.getElementById('powod_wizyty').value,
+    opis_problemu: document.getElementById('opis_problemu').value,
+    // Konsultacje
+    konsultacje,
+    uwagi_konsultacje: document.getElementById('uwagi_konsultacje').value,
   };
 
+  document.getElementById('submitBtn').disabled = true;
   document.getElementById('loading').style.display = 'block';
-  document.getElementById('wynik').style.display = 'none';
+  document.getElementById('result').style.display = 'none';
 
   try {
-    const response = await fetch(WEBHOOK_URL, {
+    const res = await fetch(WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(dane)
     });
-
-    const wynik = await response.json();
-    document.getElementById('wynik_tekst').textContent =
-      JSON.stringify(wynik, null, 2);
-    document.getElementById('wynik').style.display = 'block';
-  } catch(err) {
-    document.getElementById('wynik_tekst').textContent = 'Błąd: ' + err.message;
-    document.getElementById('wynik').style.display = 'block';
+    const raw = await res.json();
+    wyswietlWynik(raw, dane);
+  } catch(e) {
+    alert('Błąd połączenia: ' + e.message);
   } finally {
+    document.getElementById('submitBtn').disabled = false;
     document.getElementById('loading').style.display = 'none';
   }
-});
-</script>
+}
 
+function wyswietlWynik(raw, dane) {
+  let d;
+  try {
+    // Wyciągnij JSON z odpowiedzi Claude
+    let tekst = '';
+    if (raw.content && raw.content[0]) tekst = raw.content[0].text;
+    else if (raw.wynik) tekst = raw.wynik;
+    else tekst = JSON.stringify(raw);
+
+    const match = tekst.match(/```json\n?([\s\S]*?)\n?```/) || tekst.match(/(\{[\s\S]*\})/);
+    d = JSON.parse(match ? match[1] : tekst);
+  } catch(e) {
+    document.getElementById('result-content').innerHTML = '<pre style="font-size:13px;white-space:pre-wrap">' + JSON.stringify(raw, null, 2) + '</pre>';
+    document.getElementById('result').style.display = 'block';
+    document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+    return;
+  }
+
+  const pewnosc = (d.diagnoza_glowna?.pewnosc || '').toLowerCase();
+  const pewnosscClass = pewnosc.includes('wysok') ? 'pewnosc-wysoka' : pewnosc.includes('sredn') ? 'pewnosc-srednia' : 'pewnosc-niska';
+
+  document.getElementById('result-meta').textContent =
+    `Pacjent: ${dane.imie_nazwisko || 'Anonim'}, ${dane.wiek} lat · ${new Date().toLocaleDateString('pl-PL')}`;
+
+  let html = '';
+
+  // Diagnoza główna
+  if (d.diagnoza_glowna) {
+    html += `<div class="diagnoza-card">
+      <h3>${d.diagnoza_glowna.nazwa || ''}</h3>
+      <div class="kod">Kod ICD: ${d.diagnoza_glowna.kod_icd || '—'}</div>
+      <span class="pewnosc-badge ${pewnosscClass}">Pewność: ${d.diagnoza_glowna.pewnosc || '—'}</span>
+      <p style="font-size:14px;line-height:1.7;color:#2d3748">${d.diagnoza_glowna.uzasadnienie || ''}</p>
+    </div>`;
+  }
+
+  // Ocena rozwojowa
+  if (d.ocena_rozwojowa) {
+    const ocena = typeof d.ocena_rozwojowa === 'object'
+      ? Object.entries(d.ocena_rozwojowa).map(([k, v]) => `<p><strong>${k}:</strong> ${v}</p>`).join('')
+      : `<p>${d.ocena_rozwojowa}</p>`;
+    html += `<div class="result-section"><h4>Ocena rozwojowa</h4>${ocena}</div>`;
+  }
+
+  // Obszary
+  if (d.obszary_zaburzone?.length || d.obszary_w_normie?.length) {
+    html += `<div class="result-section"><h4>Obszary funkcjonowania</h4>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <p style="font-size:12px;font-weight:700;color:#c53030;margin-bottom:6px">ZABURZONE</p>
+          <div class="tags">${(d.obszary_zaburzone || []).map(a => `<span class="tag tag-red">${a}</span>`).join('')}</div>
+        </div>
+        <div>
+          <p style="font-size:12px;font-weight:700;color:#276749;margin-bottom:6px">W NORMIE</p>
+          <div class="tags">${(d.obszary_w_normie || []).map(a => `<span class="tag tag-green">${a}</span>`).join('')}</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // Zalecenia terapeutyczne
+  if (d.zalecenia_terapeutyczne) {
+    const z = d.zalecenia_terapeutyczne;
+    html += `<div class="result-section"><h4>Plan terapeutyczny</h4>
+      <div class="zalecenia-grid">
+        ${z.cele ? `<div class="zalecenia-box"><h5>Cele terapii</h5><ul>${(Array.isArray(z.cele) ? z.cele : [z.cele]).map(c=>`<li>${c}</li>`).join('')}</ul></div>` : ''}
+        ${z.metody ? `<div class="zalecenia-box"><h5>Metody</h5><ul>${(Array.isArray(z.metody) ? z.metody : [z.metody]).map(c=>`<li>${c}</li>`).join('')}</ul></div>` : ''}
+        ${z.cwiczenia ? `<div class="zalecenia-box"><h5>Ćwiczenia</h5><ul>${(Array.isArray(z.cwiczenia) ? z.cwiczenia : [z.cwiczenia]).map(c=>`<li>${c}</li>`).join('')}</ul></div>` : ''}
+        ${z.cele_krotkoterminowe ? `<div class="zalecenia-box"><h5>Cele krótkoterm.</h5><ul>${z.cele_krotkoterminowe.map(c=>`<li>${c}</li>`).join('')}</ul></div>` : ''}
+        ${z.cele_dlugoterminowe ? `<div class="zalecenia-box"><h5>Cele długoterm.</h5><ul>${z.cele_dlugoterminowe.map(c=>`<li>${c}</li>`).join('')}</ul></div>` : ''}
+        ${z.cwiczenia_domowe ? `<div class="zalecenia-box"><h5>Ćwiczenia domowe</h5><ul>${(Array.isArray(z.cwiczenia_domowe) ? z.cwiczenia_domowe : [z.cwiczenia_domowe]).map(c=>`<li>${c}</li>`).join('')}</ul></div>` : ''}
+      </div>
+    </div>`;
+  }
+
+  // Rokowanie
+  if (d.rokowanie) {
+    const rok = typeof d.rokowanie === 'object'
+      ? `<p><strong>${d.rokowanie.prognoza || ''}</strong> — ${d.rokowanie.uzasadnienie || ''}</p>`
+      : `<p>${d.rokowanie}</p>`;
+    html += `<div class="result-section"><h4>Rokowanie</h4>${rok}</div>`;
+  }
+
+  // Źródła
+  if (d.zrodla_bibliograficzne?.length) {
+    html += `<div class="zrodla"><h4>Źródła bibliograficzne</h4>
+      ${d.zrodla_bibliograficzne.map(z => `<div class="zrodlo-item">[${z.numer}] ${z.opis}</div>`).join('')}
+    </div>`;
+  }
+
+  html += `<p class="disclaimer">Niniejszy raport stanowi wsparcie diagnostyczne dla logopedy i nie zastępuje pełnego badania klinicznego. Diagnoza wymaga weryfikacji przez uprawnionego specjalistę.</p>`;
+
+  document.getElementById('result-content').innerHTML = html;
+  document.getElementById('result').style.display = 'block';
+  document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+}
+</script>
 </body>
 </html>

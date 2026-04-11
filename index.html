@@ -342,6 +342,21 @@
     <div class="field" style="margin-top: 14px;"><label>Uwagi do konsultacji</label><textarea id="uwagi_konsultacje" placeholder="Wyniki badań, skierowania, zalecenia specjalistów..."></textarea></div>
   </div>
 
+  <!-- SEKCJA VI: Dokumenty PDF -->
+  <div class="section">
+    <div class="section-title"><span>VI</span> Dokumentacja medyczna (PDF)</div>
+    <p style="font-size: 13px; color: #718096; margin-bottom: 14px;">Załącz wyniki badań lub opinie specjalistów w formacie PDF. Pliki są czytane przez AI tylko na potrzeby tej diagnozy i nie są nigdzie zapisywane.</p>
+
+    <div id="pdfDropzone" style="border: 2px dashed #e2e8f0; border-radius: 10px; padding: 28px; text-align: center; cursor: pointer; background: #fafafa; transition: all 0.2s;" onclick="document.getElementById('pdfInput').click()" ondragover="event.preventDefault();this.style.borderColor='#2c5f8a'" ondragleave="this.style.borderColor='#e2e8f0'" ondrop="handleDrop(event)">
+      <div style="font-size: 28px; margin-bottom: 8px;">📄</div>
+      <p style="font-size: 14px; color: #4a5568; font-weight: 600;">Kliknij lub przeciągnij pliki PDF</p>
+      <p style="font-size: 12px; color: #a0aec0; margin-top: 4px;">Maksymalnie 3 pliki · do 20 MB każdy</p>
+      <input type="file" id="pdfInput" accept=".pdf" multiple style="display:none" onchange="handlePdfFiles(this.files)">
+    </div>
+
+    <div id="pdfLista" style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;"></div>
+  </div>
+
   <button class="submit-btn" id="submitBtn" onclick="generujDiagnoze()">
     Generuj diagnozę logopedyczną →
   </button>
@@ -371,6 +386,56 @@
 const WEBHOOK_URL = "https://logoassist-n8n.grayground-769ded21.swedencentral.azurecontainerapps.io/webhook/4b1436ae-f528-4392-bd20-8f3d1529ab54";
 
 const scores = {};
+const MAX_PDF_SIZE = 20 * 1024 * 1024; // 20MB
+const MAX_PDF_COUNT = 3;
+let pdfFiles = []; // {name, base64}
+
+// Obsługa PDF
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('pdfDropzone').style.borderColor = '#e2e8f0';
+  handlePdfFiles(e.dataTransfer.files);
+}
+
+function handlePdfFiles(files) {
+  for (const file of files) {
+    if (file.type !== 'application/pdf') {
+      alert(`Plik "${file.name}" nie jest PDF-em.`);
+      continue;
+    }
+    if (file.size > MAX_PDF_SIZE) {
+      alert(`Plik "${file.name}" przekracza limit 20 MB.`);
+      continue;
+    }
+    if (pdfFiles.length >= MAX_PDF_COUNT) {
+      alert(`Maksymalnie ${MAX_PDF_COUNT} pliki PDF.`);
+      break;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64 = e.target.result.split(',')[1];
+      pdfFiles.push({ name: file.name, base64 });
+      renderPdfLista();
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function renderPdfLista() {
+  const lista = document.getElementById('pdfLista');
+  lista.innerHTML = pdfFiles.map((f, i) => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f7fafc;border-radius:8px;border:1px solid #e2e8f0">
+      <span style="font-size:18px">📄</span>
+      <span style="font-size:13px;color:#2d3748;flex:1">${f.name}</span>
+      <button onclick="usunPdf(${i})" style="background:none;border:none;cursor:pointer;color:#fc8181;font-size:18px;padding:0">×</button>
+    </div>
+  `).join('');
+}
+
+function usunPdf(i) {
+  pdfFiles.splice(i, 1);
+  renderPdfLista();
+}
 
 document.querySelectorAll('.score-btns').forEach(group => {
   const key = group.dataset.key;
@@ -434,6 +499,8 @@ async function generujDiagnoze() {
     // Konsultacje
     konsultacje,
     uwagi_konsultacje: document.getElementById('uwagi_konsultacje').value,
+    // Dokumenty PDF
+    pdf_dokumenty: pdfFiles.map(f => ({ name: f.name, base64: f.base64 })),
   };
 
   document.getElementById('submitBtn').disabled = true;

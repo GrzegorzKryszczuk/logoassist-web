@@ -123,7 +123,7 @@
 
 <div class="header">
   <h1>LogoAssist</h1>
-  <p>Asystent Diagnozy Logopedycznej — MOWIFY.PL</p>
+  <p>Asystent Diagnozy Logopedycznej — oparty na literaturze naukowej</p>
 </div>
 
 <div class="container">
@@ -131,17 +131,14 @@
   <!-- SEKCJA I: Dane ogólne -->
   <div class="section">
     <div class="section-title"><span>I</span> Dane ogólne</div>
-    <div class="grid-3">
-      <div class="field"><label>Numer pacjenta</label><input type="text" id="numer_pacjenta" placeholder="Numer nadaje logopeda"></div>
-      <div class="field"><label>Wiek (lata)</label><input type="number" id="wiek" min="0" max="100" placeholder="np. 5" required></div>
-    </div>
-    <div class="grid-3">
-      <div class="field"><label>Klasa / grupa</label><input type="text" id="klasa" placeholder="np. gr. Motylki"></div>
-      <div class="field"><label>Placówka</label><input type="text" id="placowka" placeholder="Przedszkole / Szkoła"></div>
-    </div>
     <div class="grid-2">
       <div class="field"><label>Data diagnozy</label><input type="date" id="data_diagnozy"></div>
       <div class="field"><label>Logopeda prowadzący</label><input type="text" id="logopeda" placeholder="Imię i nazwisko"></div>
+    </div>
+    <div class="grid-3">
+      <div class="field"><label>Numer pacjenta</label><input type="text" id="numer_pacjenta" placeholder="Numer nadaje logopeda"></div>
+      <div class="field"><label>Wiek (lata)</label><input type="number" id="wiek" min="0" max="18" placeholder="np. 5" required></div>
+      <div class="field"><label>Klasa / grupa</label><input type="text" id="klasa" placeholder="np. gr. Motylki"></div>
     </div>
   </div>
 
@@ -404,11 +401,9 @@ async function generujDiagnoze() {
 
   const dane = {
     // Dane ogólne
-    imie_nazwisko: document.getElementById('imie_nazwisko').value,
+    numer_pacjenta: document.getElementById('numer_pacjenta').value,
     wiek: parseInt(wiek),
-    data_urodzenia: document.getElementById('data_urodzenia').value,
     klasa: document.getElementById('klasa').value,
-    placowka: document.getElementById('placowka').value,
     // Wywiad
     ciaza_porod: document.getElementById('ciaza_porod').value,
     leki_choroby: document.getElementById('leki_choroby').value,
@@ -476,7 +471,7 @@ function wyswietlWynik(raw, dane) {
   const pewnosscClass = pewnosc.includes('wysok') ? 'pewnosc-wysoka' : pewnosc.includes('sredn') ? 'pewnosc-srednia' : 'pewnosc-niska';
 
   document.getElementById('result-meta').textContent =
-    `Pacjent: ${dane.imie_nazwisko || 'Anonim'}, ${dane.wiek} lat · ${new Date().toLocaleDateString('pl-PL')}`;
+    `Pacjent nr: ${dane.numer_pacjenta || '—'}, ${dane.wiek} lat · ${new Date().toLocaleDateString('pl-PL')}`;
 
   let html = '';
 

@@ -336,7 +336,7 @@
       <label class="cb-item"><input type="checkbox" value="Neurolog"> Neurolog</label>
       <label class="cb-item"><input type="checkbox" value="Psycholog"> Psycholog</label>
       <label class="cb-item"><input type="checkbox" value="Integracja sensoryczna (SI)"> SI</label>
-      <label class="cb-item"><input type="checkbox" value="Foniatr"> Foniatr</label>
+      <label class="cb-item"><input type="checkbox" value="Foniatr"> Foniatra</label>
       <label class="cb-item"><input type="checkbox" value="Psychiatra dziecięcy"> Psychiatra</label>
     </div>
     <div class="field" style="margin-top: 14px;"><label>Uwagi do konsultacji</label><textarea id="uwagi_konsultacje" placeholder="Wyniki badań, skierowania, zalecenia specjalistów..."></textarea></div>
@@ -495,12 +495,19 @@ function wyswietlWynik(raw, dane) {
 
   // Helper — wyciąga czytelny tekst z elementu który może być stringiem lub obiektem
   function itemToText(item) {
+    if (!item) return '';
     if (typeof item === 'string') return item;
-    if (typeof item === 'object' && item !== null) {
-      return item.obszar ? `<strong>${item.obszar}</strong>${item.opis ? ': ' + item.opis : ''}` :
-             item.metoda ? `<strong>${item.metoda}</strong>${item.opis ? ': ' + item.opis : ''}` :
-             item.cel ? item.cel :
-             Object.values(item).filter(v => typeof v === 'string').join(' — ');
+    if (typeof item === 'number') return String(item);
+    if (typeof item === 'object') {
+      if (item.obszar) return `<strong>${item.obszar}</strong>${item.opis ? ': ' + item.opis : ''}`;
+      if (item.metoda) return `<strong>${item.metoda}</strong>${item.opis ? ': ' + item.opis : ''}`;
+      if (item.cel) return item.cel;
+      if (item.cwiczenie) return item.cwiczenie;
+      if (item.nazwa) return item.nazwa;
+      if (item.opis) return item.opis;
+      // fallback — połącz wszystkie wartości stringowe
+      const vals = Object.values(item).filter(v => typeof v === 'string' && v.length > 0);
+      return vals.join(' — ');
     }
     return String(item);
   }
@@ -557,7 +564,11 @@ function wyswietlWynik(raw, dane) {
   // Źródła
   if (d.zrodla_bibliograficzne?.length) {
     html += `<div class="zrodla"><h4>Źródła bibliograficzne</h4>
-      ${d.zrodla_bibliograficzne.map(z => `<div class="zrodlo-item">[${z.numer}] ${z.opis}</div>`).join('')}
+      ${d.zrodla_bibliograficzne.map((z, i) => {
+        const nr = z.numer ?? z.nr ?? z.id ?? (i + 1);
+        const opis = z.opis ?? z.tytul ?? z.title ?? z.autor ?? itemToText(z);
+        return `<div class="zrodlo-item">[${nr}] ${opis}</div>`;
+      }).join('')}
     </div>`;
   }
 

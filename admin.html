@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LogoAssist — Panel Administratora</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #1a3d5c;
+    --blue: #2c5f8a;
+    --sky: #4a9ebe;
+    --mint: #5dbea3;
+    --cream: #f8f5f0;
+    --warm: #e8e0d5;
+    --text: #1a202c;
+    --muted: #6b7280;
+    --error: #dc2626;
+    --success: #059669;
+    --sidebar-w: 240px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; display: flex; }
+
+  .sidebar {
+    width: var(--sidebar-w);
+    background: #0f2236;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 8px;
+    margin-bottom: 12px;
+  }
+
+  .sidebar-logo-icon {
+    width: 36px; height: 36px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .sidebar-logo-text {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: white;
+  }
+
+  .admin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(220,38,38,0.2);
+    color: #fca5a5;
+    border: 1px solid rgba(220,38,38,0.3);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 8px 24px;
+  }
+
+  .nav-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0 8px;
+    margin-bottom: 6px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    color: rgba(255,255,255,0.6);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: 2px;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+  .nav-item.active { background: rgba(255,255,255,0.12); color: white; }
+  .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+
+  .sidebar-bottom {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .user-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+  }
+
+  .user-avatar {
+    width: 32px; height: 32px;
+    background: #dc2626;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .user-name { font-size: 13px; font-weight: 600; color: white; }
+  .user-role { font-size: 11px; color: rgba(255,255,255,0.4); }
+
+  .main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    padding: 32px;
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .page-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    color: var(--navy);
+    letter-spacing: -0.5px;
+  }
+
+  .page-subtitle { font-size: 14px; color: var(--muted); margin-top: 2px; }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: white;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+
+  .stat-label { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .stat-value { font-family: 'DM Serif Display', serif; font-size: 32px; color: var(--navy); }
+  .stat-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  .card {
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+
+  .card-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .card-title { font-size: 15px; font-weight: 600; color: var(--navy); }
+
+  .search-bar {
+    display: flex;
+    gap: 10px;
+    padding: 16px 24px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .search-bar input {
+    flex: 1;
+    padding: 9px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    border: 1.5px solid var(--warm);
+    border-radius: 10px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-bar input:focus { border-color: var(--blue); }
+
+  .search-bar select {
+    padding: 9px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    border: 1.5px solid var(--warm);
+    border-radius: 10px;
+    outline: none;
+    background: white;
+    cursor: pointer;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+  th { padding: 12px 24px; text-align: left; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; background: #f8fafc; border-bottom: 1px solid #f1f5f9; }
+  td { padding: 14px 24px; font-size: 14px; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f8fafc; }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .status-active { background: #f0fdf4; color: #059669; border: 1px solid #bbf7d0; }
+  .status-inactive { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+  .plan-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .plan-trial { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+  .plan-basic { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+  .plan-pro { background: #f0fdf4; color: #059669; border: 1px solid #bbf7d0; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+  }
+
+  .btn-activate { background: #f0fdf4; color: #059669; border: 1px solid #bbf7d0; }
+  .btn-activate:hover { background: #dcfce7; }
+  .btn-deactivate { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+  .btn-deactivate:hover { background: #fee2e2; }
+  .btn-primary { background: var(--navy); color: white; }
+  .btn-primary:hover { background: var(--blue); }
+
+  .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: white;
+    border-radius: 16px;
+    padding: 28px;
+    width: 90%;
+    max-width: 460px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+  .modal-title { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--navy); margin-bottom: 8px; }
+  .modal-sub { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+  .modal-field { margin-bottom: 16px; }
+  .modal-field label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+  .modal-field select {
+    width: 100%; padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    border: 1.5px solid var(--warm); border-radius: 10px;
+    outline: none; background: white; cursor: pointer;
+  }
+  .modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  .btn-cancel { background: white; color: var(--muted); border: 1.5px solid var(--warm); padding: 10px 18px; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; }
+  .btn-confirm { background: var(--navy); color: white; border: none; padding: 10px 18px; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .btn-confirm:hover { background: var(--blue); }
+
+  .alert { padding: 12px 16px; border-radius: 10px; font-size: 13px; margin-bottom: 16px; display: none; }
+  .alert.error { background: #fef2f2; color: var(--error); border: 1px solid #fecaca; }
+  .alert.success { background: #f0fdf4; color: var(--success); border: 1px solid #bbf7d0; }
+  .alert.show { display: block; }
+
+  .empty-state { text-align: center; padding: 48px 24px; color: var(--muted); }
+  .empty-icon { font-size: 36px; margin-bottom: 12px; }
+  .empty-text { font-size: 15px; font-weight: 500; margin-bottom: 6px; color: var(--text); }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-icon">🗣</div>
+    <span class="sidebar-logo-text">LogoAssist</span>
+  </div>
+  <div class="admin-badge">⚡ Administrator</div>
+
+  <div class="nav-label">Panel admina</div>
+  <button class="nav-item active" onclick="showPage('users')">
+    <span class="icon">👥</span> Logopedzi
+  </button>
+  <button class="nav-item" onclick="showPage('stats')">
+    <span class="icon">📊</span> Statystyki
+  </button>
+
+  <div class="sidebar-bottom">
+    <div class="user-badge">
+      <div class="user-avatar" id="userAvatar">A</div>
+      <div>
+        <div class="user-name" id="userName">Administrator</div>
+        <div class="user-role">Konto admina</div>
+      </div>
+    </div>
+    <button class="nav-item" onclick="logout()">
+      <span class="icon">🚪</span> Wyloguj
+    </button>
+  </div>
+</aside>
+
+<main class="main">
+
+  <!-- LOGOPEDZI -->
+  <div class="page active" id="page-users">
+    <div id="alertBox" class="alert"></div>
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Zarządzanie logopedami</h1>
+        <p class="page-subtitle">Lista wszystkich zarejestrowanych użytkowników</p>
+      </div>
+      <button class="btn btn-primary" onclick="loadUsers()">↻ Odśwież</button>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Wszyscy</div>
+        <div class="stat-value" id="statAll">—</div>
+        <div class="stat-sub">użytkowników</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Aktywni</div>
+        <div class="stat-value" id="statActive">—</div>
+        <div class="stat-sub">kont aktywnych</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Trial</div>
+        <div class="stat-value" id="statTrial">—</div>
+        <div class="stat-sub">okres próbny</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Płatne</div>
+        <div class="stat-value" id="statPaid">—</div>
+        <div class="stat-sub">plany płatne</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Lista logopedów</span>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Szukaj po emailu lub nazwisku..." oninput="filterUsers()">
+        <select id="filterPlan" onchange="filterUsers()">
+          <option value="">Wszystkie plany</option>
+          <option value="trial">Trial</option>
+          <option value="basic">Basic</option>
+          <option value="pro">Pro</option>
+        </select>
+        <select id="filterStatus" onchange="filterUsers()">
+          <option value="">Wszystkie statusy</option>
+          <option value="active">Aktywni</option>
+          <option value="inactive">Nieaktywni</option>
+        </select>
+      </div>
+      <div id="usersTable">
+        <div class="empty-state">
+          <div class="empty-icon">⏳</div>
+          <div class="empty-text">Ładowanie...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATYSTYKI -->
+  <div class="page" id="page-stats">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Statystyki</h1>
+        <p class="page-subtitle">Przegląd aktywności platformy</p>
+      </div>
+    </div>
+    <div class="card" style="padding:48px;text-align:center">
+      <div style="font-size:48px;margin-bottom:16px">📊</div>
+      <div style="font-size:16px;color:var(--muted)">Szczegółowe statystyki — wkrótce</div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Modal zmiany planu/statusu -->
+<div class="modal-overlay" id="modalEdit">
+  <div class="modal">
+    <div class="modal-title" id="modalEditTitle">Edytuj konto</div>
+    <div class="modal-sub" id="modalEditSub"></div>
+    <div class="modal-field">
+      <label>Plan</label>
+      <select id="editPlan">
+        <option value="trial">Trial (okres próbny)</option>
+        <option value="basic">Basic</option>
+        <option value="pro">Pro</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Status konta</label>
+      <select id="editStatus">
+        <option value="true">Aktywne</option>
+        <option value="false">Nieaktywne</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Anuluj</button>
+      <button class="btn-confirm" onclick="saveUserEdit()">Zapisz zmiany</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://logoassist-api-fcckaxewhhhfb0gz.swedencentral-01.azurewebsites.net/api';
+
+const token = localStorage.getItem('logoassist_token');
+if (!token) window.location.href = 'login.html';
+const user = JSON.parse(localStorage.getItem('logoassist_user') || '{}');
+if (user.role !== 'admin') window.location.href = 'panel.html';
+
+let allUsers = [];
+let editingUserId = null;
+
+function init() {
+  const initials = ((user.first_name || 'A')[0] + (user.last_name || '')[0]).toUpperCase();
+  document.getElementById('userAvatar').textContent = initials;
+  document.getElementById('userName').textContent = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Administrator';
+  loadUsers();
+}
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  event?.currentTarget?.classList.add('active');
+}
+
+async function loadUsers() {
+  try {
+    const res = await fetch(`${API}/admin/users`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.status === 401 || res.status === 403) { logout(); return; }
+    allUsers = await res.json();
+    updateStats();
+    renderUsers(allUsers);
+  } catch(e) {
+    showAlert('Błąd ładowania użytkowników: ' + e.message, 'error');
+  }
+}
+
+function updateStats() {
+  document.getElementById('statAll').textContent = allUsers.length;
+  document.getElementById('statActive').textContent = allUsers.filter(u => u.is_active).length;
+  document.getElementById('statTrial').textContent = allUsers.filter(u => u.plan === 'trial').length;
+  document.getElementById('statPaid').textContent = allUsers.filter(u => u.plan !== 'trial').length;
+}
+
+function filterUsers() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const plan = document.getElementById('filterPlan').value;
+  const status = document.getElementById('filterStatus').value;
+
+  const filtered = allUsers.filter(u => {
+    const matchSearch = !search ||
+      u.email.toLowerCase().includes(search) ||
+      (u.first_name || '').toLowerCase().includes(search) ||
+      (u.last_name || '').toLowerCase().includes(search);
+    const matchPlan = !plan || u.plan === plan;
+    const matchStatus = !status ||
+      (status === 'active' && u.is_active) ||
+      (status === 'inactive' && !u.is_active);
+    return matchSearch && matchPlan && matchStatus;
+  });
+
+  renderUsers(filtered);
+}
+
+function renderUsers(users) {
+  const el = document.getElementById('usersTable');
+  if (!users.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">Brak wyników</div></div>`;
+    return;
+  }
+
+  el.innerHTML = `<table>
+    <thead><tr>
+      <th>Logopeda</th>
+      <th>Email</th>
+      <th>Plan</th>
+      <th>Status</th>
+      <th>Trial kończy się</th>
+      <th>Dołączył</th>
+      <th>Akcje</th>
+    </tr></thead>
+    <tbody>
+      ${users.map(u => `
+        <tr>
+          <td><strong>${u.first_name || ''} ${u.last_name || ''}</strong></td>
+          <td style="color:var(--muted)">${u.email}</td>
+          <td><span class="plan-badge plan-${u.plan}">${u.plan.toUpperCase()}</span></td>
+          <td>
+            <span class="status-badge ${u.is_active ? 'status-active' : 'status-inactive'}">
+              ${u.is_active ? '● Aktywne' : '○ Nieaktywne'}
+            </span>
+          </td>
+          <td style="color:var(--muted);font-size:13px">${u.trial_ends_at ? new Date(u.trial_ends_at).toLocaleDateString('pl-PL') : '—'}</td>
+          <td style="color:var(--muted);font-size:13px">${new Date(u.created_at).toLocaleDateString('pl-PL')}</td>
+          <td>
+            <div class="actions">
+              <button class="btn ${u.is_active ? 'btn-deactivate' : 'btn-activate'}"
+                onclick="quickToggle(${u.id}, ${u.is_active})">
+                ${u.is_active ? 'Dezaktywuj' : 'Aktywuj'}
+              </button>
+              <button class="btn btn-primary" onclick="openEdit(${u.id}, '${u.email}', '${u.first_name || ''} ${u.last_name || ''}', '${u.plan}', ${u.is_active})">
+                Edytuj
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>`;
+}
+
+async function quickToggle(userId, isActive) {
+  try {
+    const res = await fetch(`${API}/admin/users/${userId}`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_active: !isActive })
+    });
+    if (res.ok) {
+      showAlert(`Konto ${!isActive ? 'aktywowane' : 'dezaktywowane'}`, 'success');
+      loadUsers();
+    } else {
+      const data = await res.json();
+      showAlert(data.error || 'Błąd', 'error');
+    }
+  } catch(e) {
+    showAlert('Błąd połączenia', 'error');
+  }
+}
+
+function openEdit(userId, email, name, plan, isActive) {
+  editingUserId = userId;
+  document.getElementById('modalEditTitle').textContent = `Edytuj konto`;
+  document.getElementById('modalEditSub').textContent = `${name} · ${email}`;
+  document.getElementById('editPlan').value = plan;
+  document.getElementById('editStatus').value = String(isActive);
+  document.getElementById('modalEdit').classList.add('active');
+}
+
+async function saveUserEdit() {
+  const plan = document.getElementById('editPlan').value;
+  const is_active = document.getElementById('editStatus').value === 'true';
+
+  try {
+    const res = await fetch(`${API}/admin/users/${editingUserId}`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan, is_active })
+    });
+    if (res.ok) {
+      closeModal();
+      showAlert('Zmiany zapisane', 'success');
+      loadUsers();
+    } else {
+      const data = await res.json();
+      showAlert(data.error || 'Błąd zapisu', 'error');
+    }
+  } catch(e) {
+    showAlert('Błąd połączenia', 'error');
+  }
+}
+
+function closeModal() {
+  document.getElementById('modalEdit').classList.remove('active');
+  editingUserId = null;
+}
+
+function showAlert(msg, type) {
+  const box = document.getElementById('alertBox');
+  box.textContent = msg;
+  box.className = `alert ${type} show`;
+  setTimeout(() => box.className = 'alert', 3000);
+}
+
+function logout() {
+  localStorage.removeItem('logoassist_token');
+  localStorage.removeItem('logoassist_user');
+  window.location.href = 'login.html';
+}
+
+document.getElementById('modalEdit').addEventListener('click', e => {
+  if (e.target === document.getElementById('modalEdit')) closeModal();
+});
+
+init();
+</script>
+</body>
+</html>

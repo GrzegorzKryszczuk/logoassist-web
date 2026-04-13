@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LogoAssist — Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #1a3d5c;
+    --blue: #2c5f8a;
+    --sky: #4a9ebe;
+    --mint: #5dbea3;
+    --cream: #f8f5f0;
+    --warm: #e8e0d5;
+    --text: #1a202c;
+    --muted: #6b7280;
+    --error: #dc2626;
+    --success: #059669;
+    --sidebar-w: 240px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; display: flex; }
+
+  /* Sidebar */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--navy);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 8px;
+    margin-bottom: 36px;
+  }
+
+  .sidebar-logo-icon {
+    width: 36px; height: 36px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .sidebar-logo-text {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: white;
+  }
+
+  .nav-section {
+    margin-bottom: 8px;
+  }
+
+  .nav-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.35);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0 8px;
+    margin-bottom: 6px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    color: rgba(255,255,255,0.65);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: 2px;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    font-family: 'DM Sans', sans-serif;
+    text-decoration: none;
+  }
+
+  .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+  .nav-item.active { background: rgba(255,255,255,0.14); color: white; }
+  .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+
+  .sidebar-bottom {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .user-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+  }
+
+  .user-avatar {
+    width: 32px; height: 32px;
+    background: var(--mint);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .user-info { flex: 1; min-width: 0; }
+  .user-name { font-size: 13px; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .user-plan { font-size: 11px; color: rgba(255,255,255,0.45); }
+
+  .plan-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .plan-trial { background: rgba(245,158,11,0.2); color: #fbbf24; }
+  .plan-basic { background: rgba(59,130,246,0.2); color: #60a5fa; }
+  .plan-pro { background: rgba(93,190,163,0.2); color: #5dbea3; }
+
+  /* Main content */
+  .main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    padding: 32px;
+    max-width: calc(100vw - var(--sidebar-w));
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .page-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    color: var(--navy);
+    letter-spacing: -0.5px;
+  }
+
+  .page-subtitle {
+    font-size: 14px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* Cards */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: white;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+
+  .stat-label { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .stat-value { font-family: 'DM Serif Display', serif; font-size: 32px; color: var(--navy); }
+  .stat-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+  }
+
+  .btn-primary { background: var(--navy); color: white; }
+  .btn-primary:hover { background: var(--blue); transform: translateY(-1px); }
+  .btn-secondary { background: white; color: var(--navy); border: 1.5px solid var(--warm); }
+  .btn-secondary:hover { border-color: var(--navy); }
+  .btn-danger { background: #fef2f2; color: var(--error); border: 1px solid #fecaca; }
+  .btn-danger:hover { background: #fee2e2; }
+  .btn-sm { padding: 6px 12px; font-size: 13px; }
+
+  /* Table */
+  .card {
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+
+  .card-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .card-title { font-size: 15px; font-weight: 600; color: var(--navy); }
+
+  table { width: 100%; border-collapse: collapse; }
+  th { padding: 12px 24px; text-align: left; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; background: #f8fafc; border-bottom: 1px solid #f1f5f9; }
+  td { padding: 14px 24px; font-size: 14px; border-bottom: 1px solid #f8fafc; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f8fafc; }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--muted);
+  }
+
+  .empty-icon { font-size: 36px; margin-bottom: 12px; }
+  .empty-text { font-size: 15px; font-weight: 500; margin-bottom: 6px; color: var(--text); }
+  .empty-sub { font-size: 13px; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: white;
+    border-radius: 16px;
+    padding: 28px;
+    width: 90%;
+    max-width: 460px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+  .modal-title { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--navy); margin-bottom: 20px; }
+  .modal-field { margin-bottom: 16px; }
+  .modal-field label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+  .modal-field input, .modal-field textarea, .modal-field select {
+    width: 100%; padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    border: 1.5px solid var(--warm); border-radius: 10px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .modal-field input:focus, .modal-field textarea:focus { border-color: var(--blue); }
+  .modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+  /* Diagnozy */
+  .diagnosis-card {
+    background: white;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    cursor: pointer;
+    transition: all 0.15s;
+    border-left: 4px solid var(--blue);
+  }
+  .diagnosis-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .diagnosis-meta { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .diagnosis-name { font-size: 15px; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+  .diagnosis-icd { font-size: 12px; color: var(--muted); }
+
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: var(--muted);
+    cursor: pointer;
+    margin-bottom: 20px;
+    background: none;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    padding: 0;
+  }
+  .back-btn:hover { color: var(--navy); }
+
+  .alert { padding: 12px 16px; border-radius: 10px; font-size: 13px; margin-bottom: 16px; display: none; }
+  .alert.error { background: #fef2f2; color: var(--error); border: 1px solid #fecaca; }
+  .alert.success { background: #f0fdf4; color: var(--success); border: 1px solid #bbf7d0; }
+  .alert.show { display: block; }
+
+  /* Trial info */
+  .trial-banner {
+    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    border: 1px solid #fde68a;
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .trial-text { font-size: 14px; color: #92400e; }
+  .trial-text strong { font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-icon">🗣</div>
+    <span class="sidebar-logo-text">LogoAssist</span>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Menu</div>
+    <button class="nav-item active" onclick="showPage('dashboard')">
+      <span class="icon">📊</span> Dashboard
+    </button>
+    <button class="nav-item" onclick="showPage('patients')">
+      <span class="icon">👥</span> Pacjenci
+    </button>
+    <button class="nav-item" onclick="showPage('diagnosis')">
+      <span class="icon">🔍</span> Nowa diagnoza
+    </button>
+  </div>
+
+  <div class="sidebar-bottom">
+    <div class="user-badge">
+      <div class="user-avatar" id="userAvatar">?</div>
+      <div class="user-info">
+        <div class="user-name" id="userName">Logopeda</div>
+        <div class="user-plan"><span class="plan-badge plan-trial" id="planBadge">Trial</span></div>
+      </div>
+    </div>
+    <button class="nav-item" onclick="logout()">
+      <span class="icon">🚪</span> Wyloguj
+    </button>
+  </div>
+</aside>
+
+<!-- Main content -->
+<main class="main">
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle" id="welcomeText">Witaj!</p>
+      </div>
+      <button class="btn btn-primary" onclick="showPage('diagnosis')">+ Nowa diagnoza</button>
+    </div>
+
+    <div id="trialBanner" class="trial-banner" style="display:none">
+      <div class="trial-text">⏳ <strong>Okres próbny</strong> — pozostało <span id="trialDays">?</span> dni. Przejdź na plan płatny aby zachować dostęp.</div>
+      <button class="btn btn-sm" style="background:#f59e0b;color:white;border:none">Wybierz plan</button>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Pacjenci</div>
+        <div class="stat-value" id="statPatients">—</div>
+        <div class="stat-sub">zarejestrowanych</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Diagnozy</div>
+        <div class="stat-value" id="statDiagnoses">—</div>
+        <div class="stat-sub">wykonanych</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Plan</div>
+        <div class="stat-value" id="statPlan" style="font-size:20px;padding-top:6px">—</div>
+        <div class="stat-sub" id="statPlanSub">aktywny</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Ostatni pacjenci</span>
+        <button class="btn btn-sm btn-secondary" onclick="showPage('patients')">Zobacz wszystkich</button>
+      </div>
+      <div id="recentPatients">
+        <div class="empty-state">
+          <div class="empty-icon">👥</div>
+          <div class="empty-text">Brak pacjentów</div>
+          <div class="empty-sub">Dodaj pierwszego pacjenta aby zacząć</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PACJENCI -->
+  <div class="page" id="page-patients">
+    <div id="alertPatients" class="alert"></div>
+
+    <!-- Lista pacjentów -->
+    <div id="patientsList">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Pacjenci</h1>
+          <p class="page-subtitle">Baza pacjentów — tylko numery, bez danych osobowych</p>
+        </div>
+        <button class="btn btn-primary" onclick="showAddPatient()">+ Dodaj pacjenta</button>
+      </div>
+      <div class="card" id="patientsTable">
+        <div class="empty-state">
+          <div class="empty-icon">👥</div>
+          <div class="empty-text">Ładowanie...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Karta pacjenta -->
+    <div id="patientCard" style="display:none">
+      <button class="back-btn" onclick="showPatientsList()">← Powrót do listy</button>
+      <div class="page-header">
+        <div>
+          <h1 class="page-title" id="patientCardTitle">Pacjent</h1>
+          <p class="page-subtitle" id="patientCardSub"></p>
+        </div>
+        <button class="btn btn-primary" onclick="newDiagnosisForPatient()">+ Nowa diagnoza</button>
+      </div>
+      <div id="patientDiagnoses">
+        <div class="empty-state">
+          <div class="empty-icon">🔍</div>
+          <div class="empty-text">Brak diagnoz</div>
+          <div class="empty-sub">Wykonaj pierwszą diagnozę dla tego pacjenta</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIAGNOZA -->
+  <div class="page" id="page-diagnosis">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Nowa diagnoza</h1>
+        <p class="page-subtitle">Przejdź do formularza diagnostycznego</p>
+      </div>
+    </div>
+    <div class="card" style="padding:32px;text-align:center">
+      <div style="font-size:48px;margin-bottom:16px">🔍</div>
+      <h3 style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--navy);margin-bottom:8px">Formularz diagnozy logopedycznej</h3>
+      <p style="color:var(--muted);font-size:14px;margin-bottom:24px;max-width:400px;margin-left:auto;margin-right:auto">Wypełnij kartę diagnozy aby wygenerować diagnozę wspieraną przez AI opartą na literaturze naukowej.</p>
+      <button class="btn btn-primary" style="font-size:15px;padding:14px 28px" onclick="window.location.href='index.html'">Otwórz formularz diagnozy →</button>
+    </div>
+  </div>
+
+</main>
+
+<!-- Modal dodawania pacjenta -->
+<div class="modal-overlay" id="modalAddPatient">
+  <div class="modal">
+    <div class="modal-title">Dodaj pacjenta</div>
+    <div class="modal-field">
+      <label>Numer pacjenta *</label>
+      <input type="text" id="newPatientNr" placeholder="np. P001">
+    </div>
+    <div class="modal-field">
+      <label>Wiek</label>
+      <input type="number" id="newPatientWiek" placeholder="np. 6" min="0" max="100">
+    </div>
+    <div class="modal-field">
+      <label>Klasa / grupa</label>
+      <input type="text" id="newPatientKlasa" placeholder="np. gr. Motylki">
+    </div>
+    <div class="modal-field">
+      <label>Uwagi</label>
+      <textarea id="newPatientUwagi" rows="3" placeholder="Dodatkowe informacje..."></textarea>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeModal('modalAddPatient')">Anuluj</button>
+      <button class="btn btn-primary" onclick="addPatient()">Dodaj pacjenta</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://logoassist-api-fcckaxewhhhfb0gz.swedencentral-01.azurewebsites.net/api';
+
+// Sprawdź autoryzację
+const token = localStorage.getItem('logoassist_token');
+if (!token) window.location.href = 'login.html';
+const user = JSON.parse(localStorage.getItem('logoassist_user') || '{}');
+
+let allPatients = [];
+let currentPatientId = null;
+
+// Inicjalizacja
+function init() {
+  // Ustaw dane użytkownika w sidebarze
+  const initials = ((user.first_name || '?')[0] + (user.last_name || '?')[0]).toUpperCase();
+  document.getElementById('userAvatar').textContent = initials;
+  document.getElementById('userName').textContent = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+
+  const planBadge = document.getElementById('planBadge');
+  planBadge.textContent = (user.plan || 'trial').toUpperCase();
+  planBadge.className = `plan-badge plan-${user.plan || 'trial'}`;
+
+  document.getElementById('welcomeText').textContent = `Witaj, ${user.first_name || 'Logopedo'}!`;
+
+  // Trial banner
+  if (user.plan === 'trial' && user.trial_ends_at) {
+    const days = Math.ceil((new Date(user.trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24));
+    if (days > 0) {
+      document.getElementById('trialDays').textContent = days;
+      document.getElementById('trialBanner').style.display = 'flex';
+    }
+  }
+
+  // Stats
+  document.getElementById('statPlan').textContent = (user.plan || 'trial').toUpperCase();
+
+  loadPatients();
+}
+
+// Nawigacja
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  event?.currentTarget?.classList.add('active');
+}
+
+// Pacjenci
+async function loadPatients() {
+  try {
+    const res = await fetch(`${API}/patients`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.status === 401) { logout(); return; }
+    allPatients = await res.json();
+
+    document.getElementById('statPatients').textContent = allPatients.length;
+    renderPatientsTable();
+    renderRecentPatients();
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function renderPatientsTable() {
+  const el = document.getElementById('patientsTable');
+  if (!allPatients.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">Brak pacjentów</div><div class="empty-sub">Kliknij "+ Dodaj pacjenta" aby dodać pierwszego</div></div>`;
+    return;
+  }
+
+  el.innerHTML = `<table>
+    <thead><tr>
+      <th>Nr pacjenta</th><th>Wiek</th><th>Klasa/Grupa</th><th>Data dodania</th><th>Akcje</th>
+    </tr></thead>
+    <tbody>
+      ${allPatients.map(p => `
+        <tr>
+          <td><strong>${p.numer_pacjenta}</strong></td>
+          <td>${p.wiek ? p.wiek + ' lat' : '—'}</td>
+          <td>${p.klasa || '—'}</td>
+          <td>${new Date(p.created_at).toLocaleDateString('pl-PL')}</td>
+          <td>
+            <button class="btn btn-sm btn-secondary" onclick="openPatientCard(${p.id}, '${p.numer_pacjenta}', '${p.wiek || ''}', '${p.klasa || ''}')">Karta pacjenta</button>
+          </td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>`;
+}
+
+function renderRecentPatients() {
+  const el = document.getElementById('recentPatients');
+  const recent = allPatients.slice(0, 5);
+  if (!recent.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">Brak pacjentów</div><div class="empty-sub">Dodaj pierwszego pacjenta aby zacząć</div></div>`;
+    return;
+  }
+  el.innerHTML = `<table>
+    <thead><tr><th>Nr pacjenta</th><th>Wiek</th><th>Data dodania</th><th></th></tr></thead>
+    <tbody>
+      ${recent.map(p => `
+        <tr>
+          <td><strong>${p.numer_pacjenta}</strong></td>
+          <td>${p.wiek ? p.wiek + ' lat' : '—'}</td>
+          <td>${new Date(p.created_at).toLocaleDateString('pl-PL')}</td>
+          <td><button class="btn btn-sm btn-secondary" onclick="showPage('patients');openPatientCard(${p.id},'${p.numer_pacjenta}','${p.wiek || ''}','${p.klasa || ''}')">Karta</button></td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>`;
+}
+
+function showAddPatient() {
+  document.getElementById('newPatientNr').value = '';
+  document.getElementById('newPatientWiek').value = '';
+  document.getElementById('newPatientKlasa').value = '';
+  document.getElementById('newPatientUwagi').value = '';
+  document.getElementById('modalAddPatient').classList.add('active');
+}
+
+async function addPatient() {
+  const numer_pacjenta = document.getElementById('newPatientNr').value.trim();
+  const wiek = document.getElementById('newPatientWiek').value;
+  const klasa = document.getElementById('newPatientKlasa').value.trim();
+  const uwagi = document.getElementById('newPatientUwagi').value.trim();
+
+  if (!numer_pacjenta) { alert('Numer pacjenta jest wymagany'); return; }
+
+  try {
+    const res = await fetch(`${API}/patients`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ numer_pacjenta, wiek: wiek ? parseInt(wiek) : null, klasa, uwagi })
+    });
+    if (res.ok) {
+      closeModal('modalAddPatient');
+      loadPatients();
+    } else {
+      const data = await res.json();
+      alert(data.error || 'Błąd dodawania pacjenta');
+    }
+  } catch(e) {
+    alert('Błąd połączenia');
+  }
+}
+
+async function openPatientCard(id, nr, wiek, klasa) {
+  currentPatientId = id;
+  document.getElementById('patientCardTitle').textContent = `Pacjent ${nr}`;
+  document.getElementById('patientCardSub').textContent = `${wiek ? wiek + ' lat' : ''}${klasa ? ' · ' + klasa : ''}`;
+  document.getElementById('patientsList').style.display = 'none';
+  document.getElementById('patientCard').style.display = 'block';
+  showPage('patients');
+
+  try {
+    const res = await fetch(`${API}/diagnoses/${id}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const diagnoses = await res.json();
+    document.getElementById('statDiagnoses').textContent = diagnoses.length || '0';
+    renderDiagnoses(diagnoses);
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function renderDiagnoses(diagnoses) {
+  const el = document.getElementById('patientDiagnoses');
+  if (!diagnoses.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">Brak diagnoz</div><div class="empty-sub">Wykonaj pierwszą diagnozę dla tego pacjenta</div></div>`;
+    return;
+  }
+  el.innerHTML = diagnoses.map(d => {
+    const wynik = d.wynik_diagnozy || {};
+    const diagnoza = wynik.diagnoza_glowna || {};
+    return `<div class="diagnosis-card">
+      <div class="diagnosis-meta">${new Date(d.created_at).toLocaleDateString('pl-PL', {year:'numeric',month:'long',day:'numeric'})}</div>
+      <div class="diagnosis-name">${diagnoza.nazwa || 'Diagnoza logopedyczna'}</div>
+      <div class="diagnosis-icd">ICD: ${diagnoza.kod_icd || '—'} · Pewność: ${diagnoza.pewnosc || '—'}</div>
+    </div>`;
+  }).join('');
+}
+
+function showPatientsList() {
+  document.getElementById('patientsList').style.display = 'block';
+  document.getElementById('patientCard').style.display = 'none';
+  currentPatientId = null;
+}
+
+function newDiagnosisForPatient() {
+  if (currentPatientId) {
+    localStorage.setItem('logoassist_patient_id', currentPatientId);
+  }
+  window.location.href = 'index.html';
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+function logout() {
+  localStorage.removeItem('logoassist_token');
+  localStorage.removeItem('logoassist_user');
+  window.location.href = 'login.html';
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('active'); });
+});
+
+init();
+</script>
+</body>
+</html>

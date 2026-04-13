@@ -376,7 +376,7 @@
     <div id="pdfLista" style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;"></div>
   </div>
 
-  <button class="submit-btn" id="submitBtn" onclick="generujDiagnoze()">
+  <button class="submit-btn" id="submitBtn" onclick="pokazModalZgody()">
     Generuj diagnozę logopedyczną →
   </button>
 
@@ -402,11 +402,11 @@
     <div id="result-content"></div>
   </div>
 
-  <!-- MODAL ZGODY -->
+  <!-- MODAL ZGODY PRZED DIAGNOZĄ -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
-      <h3>⚠️ Potwierdzenie przed pobraniem</h3>
-      <p>Przed pobraniem raportu prosimy o potwierdzenie, że zapoznałeś się z poniższą informacją:</p>
+      <h3>⚠️ Potwierdzenie przed wygenerowaniem diagnozy</h3>
+      <p>Przed wygenerowaniem diagnozy prosimy o potwierdzenie poniższej informacji:</p>
       <div class="modal-check">
         <input type="checkbox" id="modalCheckbox" onchange="document.getElementById('modalConfirmBtn').disabled = !this.checked">
         <label for="modalCheckbox">
@@ -415,7 +415,25 @@
       </div>
       <div class="modal-btns">
         <button class="modal-cancel" onclick="zamknijModal()">Anuluj</button>
-        <button class="modal-confirm" id="modalConfirmBtn" disabled onclick="pobierzPdf()">Pobierz PDF</button>
+        <button class="modal-confirm" id="modalConfirmBtn" disabled onclick="zaakceptujIGeneruj()">TAK — Generuj diagnozę</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PDF -->
+  <div class="modal-overlay" id="modalPdfOverlay">
+    <div class="modal">
+      <h3>⬇ Pobierz raport PDF</h3>
+      <p>Przed pobraniem raportu prosimy o ponowne potwierdzenie:</p>
+      <div class="modal-check">
+        <input type="checkbox" id="modalPdfCheckbox" onchange="document.getElementById('modalPdfConfirmBtn').disabled = !this.checked">
+        <label for="modalPdfCheckbox">
+          Potwierdzam, że zapoznałem się z diagnozą i rozumiem, że ma ona charakter <strong>wsparcia diagnostycznego</strong> i nie zastępuje pełnego badania klinicznego. Diagnoza wymaga weryfikacji przez uprawnionego specjalistę.
+        </label>
+      </div>
+      <div class="modal-btns">
+        <button class="modal-cancel" onclick="zamknijModalPdf()">Anuluj</button>
+        <button class="modal-confirm" id="modalPdfConfirmBtn" disabled onclick="pobierzPdf()">TAK — Pobierz PDF</button>
       </div>
     </div>
   </div>
@@ -506,7 +524,6 @@ document.querySelectorAll('.cb-item').forEach(item => {
 
 async function generujDiagnoze() {
   const wiek = document.getElementById('wiek').value;
-  if (!wiek) { alert('Uzupełnij wiek pacjenta'); return; }
 
   const gloskaChecked = [...document.querySelectorAll('#gloskaGrp input:checked')].map(c => c.value);
   const konsultacje = [...document.querySelectorAll('#konsultacjeGrp input:checked')].map(c => c.value);
@@ -749,8 +766,10 @@ function wyswietlWynik(raw, dane) {
   document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
 }
 
-// Modal i PDF
-function pokazModalPdf() {
+// Modal zgody przed diagnozą
+function pokazModalZgody() {
+  const wiek = document.getElementById('wiek').value;
+  if (!wiek) { alert('Uzupełnij wiek pacjenta'); return; }
   document.getElementById('modalCheckbox').checked = false;
   document.getElementById('modalConfirmBtn').disabled = true;
   document.getElementById('modalOverlay').classList.add('active');
@@ -758,6 +777,22 @@ function pokazModalPdf() {
 
 function zamknijModal() {
   document.getElementById('modalOverlay').classList.remove('active');
+}
+
+function zaakceptujIGeneruj() {
+  zamknijModal();
+  generujDiagnoze();
+}
+
+// Modal PDF
+function pokazModalPdf() {
+  document.getElementById('modalPdfCheckbox').checked = false;
+  document.getElementById('modalPdfConfirmBtn').disabled = true;
+  document.getElementById('modalPdfOverlay').classList.add('active');
+}
+
+function zamknijModalPdf() {
+  document.getElementById('modalPdfOverlay').classList.remove('active');
 }
 
 async function pobierzPdf() {
@@ -813,6 +848,9 @@ async function pobierzPdf() {
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('modalOverlay').addEventListener('click', (e) => {
     if (e.target === document.getElementById('modalOverlay')) zamknijModal();
+  });
+  document.getElementById('modalPdfOverlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('modalPdfOverlay')) zamknijModalPdf();
   });
 });
 </script>

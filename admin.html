@@ -484,7 +484,7 @@
 const API = 'https://logoassist-api-fcckaxewhhhfb0gz.swedencentral-01.azurewebsites.net/api';
 
 const token = localStorage.getItem('logoassist_token');
-if (!token) window.location.href = 'login.html';
+if (!token) window.location.href = 'index.html';
 const user = JSON.parse(localStorage.getItem('logoassist_user') || '{}');
 if (user.role !== 'admin') window.location.href = 'panel.html';
 

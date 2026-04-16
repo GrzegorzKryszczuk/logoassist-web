@@ -1,862 +1,496 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="pl" class="scroll-smooth">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LogoAssist — Karta Diagnozy Logopedycznej</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
- // Sprawdź autoryzację
-const _token = localStorage.getItem('logoassist_token');
-if (!_token) window.location.href = 'login.html';
-const _user = JSON.parse(localStorage.getItem('logoassist_user') || '{}');
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; }
-
-  .header { background: linear-gradient(135deg, #2c5f8a, #1a3d5c); color: white; padding: 24px 32px; }
-  .header h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
-  .header p { font-size: 14px; opacity: 0.8; }
-
-  .container { max-width: 900px; margin: 32px auto; padding: 0 20px 60px; }
-
-  .section { background: white; border-radius: 12px; padding: 28px; margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-  .section-title { font-size: 15px; font-weight: 700; color: #2c5f8a; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0; display: flex; align-items: center; gap: 8px; }
-  .section-title span { background: #2c5f8a; color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
-
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-
-  .field { margin-bottom: 14px; }
-  .field label { display: block; font-size: 13px; font-weight: 600; color: #4a5568; margin-bottom: 5px; }
-  .field input, .field select, .field textarea {
-    width: 100%; padding: 9px 12px; font-size: 14px;
-    border: 1.5px solid #e2e8f0; border-radius: 8px;
-    background: #fafafa; color: #1a202c; font-family: inherit;
-    transition: border-color 0.2s;
-  }
-  .field input:focus, .field select:focus, .field textarea:focus {
-    outline: none; border-color: #2c5f8a; background: white;
-  }
-  .field textarea { resize: vertical; min-height: 70px; }
-
-  .score-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
-  .score-row { display: flex; align-items: center; gap: 12px; }
-  .score-label { font-size: 13px; color: #4a5568; min-width: 220px; }
-  .score-btns { display: flex; gap: 6px; }
-  .score-btn {
-    width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid #e2e8f0;
-    background: #fafafa; cursor: pointer; font-size: 13px; font-weight: 600;
-    color: #718096; transition: all 0.15s; font-family: inherit;
-  }
-  .score-btn:hover { border-color: #2c5f8a; }
-  .score-btn.active-0 { background: #fff5f5; border-color: #fc8181; color: #c53030; }
-  .score-btn.active-1 { background: #fffbeb; border-color: #f6ad55; color: #c05621; }
-  .score-btn.active-2 { background: #f0fff4; border-color: #68d391; color: #276749; }
-  .score-legend { font-size: 12px; color: #a0aec0; margin-top: 6px; }
-
-  .checkboxes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
-  .cb-item {
-    padding: 6px 12px; border-radius: 20px; border: 1.5px solid #e2e8f0;
-    cursor: pointer; font-size: 13px; background: #fafafa; color: #4a5568;
-    transition: all 0.15s; user-select: none;
-  }
-  .cb-item.active { background: #ebf4ff; border-color: #2c5f8a; color: #2c5f8a; font-weight: 600; }
-  .cb-item input { display: none; }
-
-  .submit-btn {
-    width: 100%; padding: 16px; background: #2c5f8a; color: white;
-    border: none; border-radius: 12px; font-size: 16px; font-weight: 700;
-    cursor: pointer; transition: background 0.2s; font-family: inherit;
-    margin-top: 8px;
-  }
-  .submit-btn:hover { background: #1a3d5c; }
-  .submit-btn:disabled { background: #a0aec0; cursor: not-allowed; }
-
-  .loading { display: none; text-align: center; padding: 40px; background: white; border-radius: 12px; margin-top: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-  .spinner { width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: #2c5f8a; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .result { display: none; background: white; border-radius: 12px; padding: 32px; margin-top: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-  .result-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
-  .result-title { font-size: 20px; font-weight: 700; color: #2c5f8a; }
-  .print-btn { padding: 8px 20px; background: white; border: 1.5px solid #2c5f8a; color: #2c5f8a; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; font-family: inherit; }
-  .print-btn:hover { background: #ebf4ff; }
-
-  .diagnoza-card { background: #ebf4ff; border-left: 4px solid #2c5f8a; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
-  .diagnoza-card h3 { font-size: 18px; color: #1a3d5c; margin-bottom: 6px; }
-  .diagnoza-card .kod { font-size: 13px; color: #4a5568; margin-bottom: 8px; }
-  .pewnosc-badge { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; margin-bottom: 10px; }
-  .pewnosc-wysoka { background: #f0fff4; color: #276749; border: 1px solid #68d391; }
-  .pewnosc-srednia { background: #fffbeb; color: #c05621; border: 1px solid #f6ad55; }
-  .pewnosc-niska { background: #fff5f5; color: #c53030; border: 1px solid #fc8181; }
-
-  .result-section { margin-bottom: 20px; }
-  .result-section h4 { font-size: 12px; font-weight: 700; color: #718096; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
-  .result-section p { font-size: 14px; line-height: 1.7; color: #2d3748; }
-
-  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
-  .tag { padding: 4px 12px; border-radius: 20px; font-size: 13px; }
-  .tag-red { background: #fff5f5; color: #c53030; border: 1px solid #fc8181; }
-  .tag-green { background: #f0fff4; color: #276749; border: 1px solid #68d391; }
-
-  .zalecenia-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .zalecenia-box { background: #f7fafc; border-radius: 8px; padding: 14px; }
-  .zalecenia-box h5 { font-size: 12px; font-weight: 700; color: #4a5568; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
-  .zalecenia-box ul { padding-left: 16px; }
-  .zalecenia-box li { font-size: 13px; color: #2d3748; line-height: 1.6; margin-bottom: 4px; }
-
-  .zrodla { background: #f7fafc; border-radius: 8px; padding: 16px; }
-  .zrodla h4 { font-size: 12px; font-weight: 700; color: #718096; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
-  .zrodlo-item { font-size: 13px; color: #4a5568; padding: 6px 0; border-bottom: 1px solid #e2e8f0; }
-  .zrodlo-item:last-child { border-bottom: none; }
-
-  .disclaimer { font-size: 12px; color: #a0aec0; text-align: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
-
-  .pdf-btn { padding: 8px 20px; background: #276749; border: none; color: white; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; font-family: inherit; }
-  .pdf-btn:hover { background: #1c4532; }
-
-  /* Modal */
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
-  .modal-overlay.active { display: flex; }
-  .modal { background: white; border-radius: 16px; padding: 32px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-  .modal h3 { font-size: 18px; color: #1a3d5c; margin-bottom: 12px; }
-  .modal p { font-size: 14px; color: #4a5568; line-height: 1.7; margin-bottom: 20px; }
-  .modal-check { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 24px; padding: 14px; background: #fffbeb; border-radius: 8px; border: 1px solid #f6ad55; }
-  .modal-check input[type="checkbox"] { width: 18px; height: 18px; margin-top: 2px; flex-shrink: 0; cursor: pointer; accent-color: #2c5f8a; }
-  .modal-check label { font-size: 13px; color: #2d3748; line-height: 1.6; cursor: pointer; }
-  .modal-btns { display: flex; gap: 10px; justify-content: flex-end; }
-  .modal-cancel { padding: 10px 20px; background: white; border: 1.5px solid #e2e8f0; color: #718096; border-radius: 8px; cursor: pointer; font-size: 14px; font-family: inherit; }
-  .modal-confirm { padding: 10px 20px; background: #276749; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; font-family: inherit; }
-  .modal-confirm:disabled { background: #a0aec0; cursor: not-allowed; }
-
-  @media (max-width: 640px) {
-    .grid-2, .grid-3, .zalecenia-grid { grid-template-columns: 1fr; }
-    .score-row { flex-wrap: wrap; }
-    .score-label { min-width: 100%; }
-  }
-
-  @media print {
-    .header, .submit-btn, .print-btn { display: none; }
-    .result { box-shadow: none; }
-  }
-</style>
-</head>
-<body>
-
-<div class="header">
-  <h1>LogoAssist</h1>
-  <p>Asystent Diagnozy Logopedycznej — oparty na literaturze naukowej</p>
-</div>
-
-<div class="container">
-
-  <!-- SEKCJA I: Dane ogólne -->
-  <div class="section">
-    <div class="section-title"><span>I</span> Dane ogólne</div>
-    <div class="grid-2">
-      <div class="field"><label>Data diagnozy</label><input type="date" id="data_diagnozy"></div>
-      <div class="field"><label>Logopeda prowadzący</label><input type="text" id="logopeda" placeholder="Imię i nazwisko"></div>
-    </div>
-    <div class="grid-3">
-      <div class="field"><label>Numer pacjenta</label><input type="text" id="numer_pacjenta" placeholder="np. 001"></div>
-      <div class="field"><label>Wiek (lata)</label><input type="number" id="wiek" min="0" max="18" placeholder="np. 5" required></div>
-      <div class="field"><label>Klasa / grupa</label><input type="text" id="klasa" placeholder="np. gr. Motylki"></div>
-    </div>
-  </div>
-
-  <!-- SEKCJA II: Wywiad -->
-  <div class="section">
-    <div class="section-title"><span>II</span> Wywiad z rodzicami / opiekunami</div>
-    <div class="grid-2">
-      <div class="field"><label>1. Przebieg ciąży i porodu</label><textarea id="ciaza_porod" placeholder="Czynniki ryzyka, komplikacje..."></textarea></div>
-      <div class="field"><label>2. Leki / choroby matki w ciąży</label><textarea id="leki_choroby" placeholder="Jeśli dotyczy..."></textarea></div>
-    </div>
-    <div class="grid-2">
-      <div class="field"><label>3. Rozwój motoryczny</label><textarea id="rozwoj_motoryczny" placeholder="Raczkowanie, siadanie, chodzenie..."></textarea></div>
-      <div class="field"><label>4. Rozwój mowy</label><textarea id="rozwoj_mowy" placeholder="Głużenie, gaworzenie, pierwsze słowa, zdania..."></textarea></div>
-    </div>
-    <div class="grid-2">
-      <div class="field"><label>5. Czynności fizjologiczne</label><textarea id="czynnosci_fizjo" placeholder="Ssanie, karmienie, połykanie..."></textarea></div>
-      <div class="field"><label>6. Nawyki żywieniowe</label><textarea id="nawyki" placeholder="Np. długie karmienie piersią, smoczek, papka..."></textarea></div>
-    </div>
-    <div class="grid-2">
-      <div class="field"><label>7. Przebyte choroby / schorzenia</label><textarea id="choroby" placeholder="Zapalenia ucha, migdałki, adenoid..."></textarea></div>
-      <div class="field"><label>8. Dokumentacja medyczna</label><textarea id="dokumentacja" placeholder="Wyniki badań, opinie specjalistów..."></textarea></div>
-    </div>
-    <div class="grid-3">
-      <div class="field"><label>9. Wada wymowy w rodzinie</label>
-        <select id="wada_rodzina">
-          <option value="">— wybierz —</option>
-          <option>Tak</option>
-          <option>Nie</option>
-          <option>Nieznane</option>
-        </select>
-      </div>
-      <div class="field"><label>10. Sposób oddychania</label>
-        <select id="oddychanie_wywiad">
-          <option value="">— wybierz —</option>
-          <option>Przez nos (prawidłowe)</option>
-          <option>Przez usta</option>
-          <option>Mieszane</option>
-        </select>
-      </div>
-      <div class="field"><label>11. Inne informacje</label><input type="text" id="inne_wywiad" placeholder="Dodatkowe uwagi..."></div>
-    </div>
-  </div>
-
-  <!-- SEKCJA III: Badanie logopedyczne -->
-  <div class="section">
-    <div class="section-title"><span>III</span> Wstępne badanie logopedyczne / obserwacja</div>
-
-    <div class="score-grid">
-      <p class="score-legend">Ocena: 0 = zaburzone / nieprawidłowe &nbsp;·&nbsp; 1 = z trudnościami / pogranicze normy &nbsp;·&nbsp; 2 = prawidłowe</p>
-
-      <div class="score-row">
-        <span class="score-label">1. Zachowanie i koncentracja</span>
-        <div class="score-btns" data-key="zachowanie">
-          <button class="score-btn" data-v="0">0</button>
-          <button class="score-btn" data-v="1">1</button>
-          <button class="score-btn" data-v="2">2</button>
-        </div>
-      </div>
-      <div class="score-row">
-        <span class="score-label">2. Rozumienie mowy</span>
-        <div class="score-btns" data-key="rozumienie">
-          <button class="score-btn" data-v="0">0</button>
-          <button class="score-btn" data-v="1">1</button>
-          <button class="score-btn" data-v="2">2</button>
-        </div>
-      </div>
-      <div class="score-row">
-        <span class="score-label">3. Artykulacja / wymowa</span>
-        <div class="score-btns" data-key="artykulacja_ocena">
-          <button class="score-btn" data-v="0">0</button>
-          <button class="score-btn" data-v="1">1</button>
-          <button class="score-btn" data-v="2">2</button>
-        </div>
-      </div>
-      <div class="score-row">
-        <span class="score-label">4. Sprawność narządów artykulacyjnych</span>
-        <div class="score-btns" data-key="narzady">
-          <button class="score-btn" data-v="0">0</button>
-          <button class="score-btn" data-v="1">1</button>
-          <button class="score-btn" data-v="2">2</button>
-        </div>
-      </div>
-      <div class="score-row">
-        <span class="score-label">5. Sposób oddychania</span>
-        <div class="score-btns" data-key="oddychanie_badanie">
-          <button class="score-btn" data-v="0">0</button>
-          <button class="score-btn" data-v="1">1</button>
-          <button class="score-btn" data-v="2">2</button>
-        </div>
-      </div>
-      <div class="score-row">
-        <span class="score-label">6. Połykanie / gryzienie / żucie</span>
-        <div class="score-btns" data-key="polykanie">
-          <button class="score-btn" data-v="0">0</button>
-          <button class="score-btn" data-v="1">1</button>
-          <button class="score-btn" data-v="2">2</button>
-        </div>
-      </div>
-      <div class="score-row">
-        <span class="score-label">7. Słuch fonemowy</span>
-        <div class="score-btns" data-key="sluch">
-          <button class="score-btn" data-v="0">0</button>
-          <button class="score-btn" data-v="1">1</button>
-          <button class="score-btn" data-v="2">2</button>
-        </div>
-      </div>
-      <div class="score-row">
-        <span class="score-label">8. Nadawanie mowy (ekspresja)</span>
-        <div class="score-btns" data-key="nadawanie">
-          <button class="score-btn" data-v="0">0</button>
-          <button class="score-btn" data-v="1">1</button>
-          <button class="score-btn" data-v="2">2</button>
-        </div>
-      </div>
-      <div class="score-row">
-        <span class="score-label">9. Pamięć słuchowa / sekwencyjna</span>
-        <div class="score-btns" data-key="pamiec">
-          <button class="score-btn" data-v="0">0</button>
-          <button class="score-btn" data-v="1">1</button>
-          <button class="score-btn" data-v="2">2</button>
-        </div>
-      </div>
-      <div class="score-row">
-        <span class="score-label">10. Lateralizacja</span>
-        <div class="score-btns" data-key="lateralizacja">
-          <button class="score-btn" data-v="0">0</button>
-          <button class="score-btn" data-v="1">1</button>
-          <button class="score-btn" data-v="2">2</button>
-        </div>
-      </div>
-    </div>
-
-    <div style="margin-top: 20px;">
-      <div class="field">
-        <label>Głoski z nieprawidłową realizacją</label>
-        <div class="checkboxes" id="gloskaGrp">
-          <label class="cb-item"><input type="checkbox" value="sz, cz, ż, dż (sygmatyzm szumiący)"> sz/cz/ż/dż</label>
-          <label class="cb-item"><input type="checkbox" value="s, c, z, dz (sygmatyzm świszczący)"> s/c/z/dz</label>
-          <label class="cb-item"><input type="checkbox" value="r (rotacyzm)"> r</label>
-          <label class="cb-item"><input type="checkbox" value="l (lambdacyzm)"> l</label>
-          <label class="cb-item"><input type="checkbox" value="k, g (kappacyzm/gammacyzm)"> k/g</label>
-          <label class="cb-item"><input type="checkbox" value="p, b, m"> p/b/m</label>
-          <label class="cb-item"><input type="checkbox" value="t, d, n"> t/d/n</label>
-          <label class="cb-item"><input type="checkbox" value="f, w"> f/w</label>
-          <label class="cb-item"><input type="checkbox" value="głoski dźwięczne (ubezdźwięcznianie)"> ubezdźw.</label>
-          <label class="cb-item"><input type="checkbox" value="inne głoski"> inne</label>
-        </div>
-      </div>
-      <div class="field"><label>Uwagi do artykulacji (typ błędu, substytucje, elizje)</label><textarea id="uwagi_artykulacja" placeholder="np. substytucja sz→s, elizja spółgłosek w wygłosie, sygmatyzm boczny..."></textarea></div>
-    </div>
-
-    <div class="grid-2" style="margin-top: 12px;">
-      <div class="field"><label>Napięcie mięśniowe jamy ustnej</label>
-        <select id="napiecie">
-          <option value="">— nie oceniono —</option>
-          <option>Norma</option>
-          <option>Hipotonia (obniżone)</option>
-          <option>Hipertonia (wzmożone)</option>
-        </select>
-      </div>
-      <div class="field"><label>Wolne uwagi z badania</label><input type="text" id="uwagi_badanie" placeholder="Dodatkowe obserwacje..."></div>
-    </div>
-  </div>
-
-  <!-- SEKCJA IV: Powód wizyty -->
-  <div class="section">
-    <div class="section-title"><span>IV</span> Powód zgłoszenia</div>
-    <div class="grid-2">
-      <div class="field"><label>Główny powód wizyty</label>
-        <select id="powod_wizyty">
-          <option value="">— wybierz —</option>
-          <option>Wada wymowy</option>
-          <option>Opóźniony rozwój mowy</option>
-          <option>Jąkanie / giełkot</option>
-          <option>Zaburzenia głosu</option>
-          <option>Problemy z połykaniem</option>
-          <option>Afazja / dysfazja</option>
-          <option>Autyzm / ASD</option>
-          <option>Niepełnosprawność intelektualna</option>
-          <option>Inne</option>
-        </select>
-      </div>
-      <div class="field"><label>Dodatkowy opis problemu</label><input type="text" id="opis_problemu" placeholder="np. dziecko nie wymawia r, zastępuje przez l..."></div>
-    </div>
-  </div>
-
-  <!-- SEKCJA V: Konsultacje -->
-  <div class="section">
-    <div class="section-title"><span>V</span> Konsultacje i badania dodatkowe</div>
-    <p style="font-size: 13px; color: #718096; margin-bottom: 14px;">Zaznacz odbyte lub zalecane konsultacje:</p>
-    <div class="checkboxes" id="konsultacjeGrp">
-      <label class="cb-item"><input type="checkbox" value="Audiolog"> Audiolog</label>
-      <label class="cb-item"><input type="checkbox" value="Laryngolog"> Laryngolog</label>
-      <label class="cb-item"><input type="checkbox" value="Ortodonta"> Ortodonta</label>
-      <label class="cb-item"><input type="checkbox" value="Neurolog"> Neurolog</label>
-      <label class="cb-item"><input type="checkbox" value="Psycholog"> Psycholog</label>
-      <label class="cb-item"><input type="checkbox" value="Integracja sensoryczna (SI)"> SI</label>
-      <label class="cb-item"><input type="checkbox" value="Foniatra"> Foniatra</label>
-      <label class="cb-item"><input type="checkbox" value="Psychiatra dziecięcy"> Psychiatra</label>
-    </div>
-    <div class="field" style="margin-top: 14px;"><label>Uwagi do konsultacji</label><textarea id="uwagi_konsultacje" placeholder="Wyniki badań, skierowania, zalecenia specjalistów..."></textarea></div>
-  </div>
-
-  <!-- SEKCJA VI: Dokumenty PDF -->
-  <div class="section">
-    <div class="section-title"><span>VI</span> Dokumentacja medyczna (PDF)</div>
-    <p style="font-size: 13px; color: #718096; margin-bottom: 14px;">Załącz wyniki badań lub opinie specjalistów w formacie PDF. Pliki są czytane przez AI tylko na potrzeby tej diagnozy i nie są nigdzie zapisywane.</p>
-
-    <div id="pdfDropzone" style="border: 2px dashed #e2e8f0; border-radius: 10px; padding: 28px; text-align: center; cursor: pointer; background: #fafafa; transition: all 0.2s;" onclick="document.getElementById('pdfInput').click()" ondragover="event.preventDefault();this.style.borderColor='#2c5f8a'" ondragleave="this.style.borderColor='#e2e8f0'" ondrop="handleDrop(event)">
-      <div style="font-size: 28px; margin-bottom: 8px;">📄</div>
-      <p style="font-size: 14px; color: #4a5568; font-weight: 600;">Kliknij lub przeciągnij pliki PDF</p>
-      <p style="font-size: 12px; color: #a0aec0; margin-top: 4px;">Maksymalnie 3 pliki · do 20 MB każdy</p>
-      <input type="file" id="pdfInput" accept=".pdf" multiple style="display:none" onchange="handlePdfFiles(this.files)">
-    </div>
-
-    <div id="pdfLista" style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;"></div>
-  </div>
-
-  <button class="submit-btn" id="submitBtn" onclick="pokazModalZgody()">
-    Generuj diagnozę logopedyczną →
-  </button>
-
-  <!-- LOADING -->
-  <div class="loading" id="loading">
-    <div class="spinner"></div>
-    <p style="color: #4a5568; font-size: 15px; font-weight: 600;">Analizuję dane i przeszukuję bazę wiedzy...</p>
-    <p style="color: #a0aec0; font-size: 13px; margin-top: 6px;">To może potrwać 30–60 sekund</p>
-  </div>
-
-  <!-- WYNIK -->
-  <div class="result" id="result">
-    <div class="result-header">
-      <div>
-        <div class="result-title">Wynik diagnozy logopedycznej</div>
-        <div id="result-meta" style="font-size: 13px; color: #718096; margin-top: 4px;"></div>
-      </div>
-      <div style="display:flex;gap:8px">
-        <button class="print-btn" onclick="window.print()">🖨 Drukuj</button>
-        <button class="pdf-btn" onclick="pokazModalPdf()">⬇ Pobierz PDF</button>
-      </div>
-    </div>
-    <div id="result-content"></div>
-  </div>
-
-  <!-- MODAL ZGODY PRZED DIAGNOZĄ -->
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal">
-      <h3>⚠️ Potwierdzenie przed wygenerowaniem diagnozy</h3>
-      <p>Przed wygenerowaniem diagnozy prosimy o potwierdzenie poniższej informacji:</p>
-      <div class="modal-check">
-        <input type="checkbox" id="modalCheckbox" onchange="document.getElementById('modalConfirmBtn').disabled = !this.checked">
-        <label for="modalCheckbox">
-          Zostałem poinformowany i zgadzam się, że przedstawiona diagnoza ma charakter <strong>wsparcia diagnostycznego dla logopedy</strong> i nie zastępuje pełnego badania klinicznego. Diagnoza wymaga weryfikacji przez uprawnionego specjalistę. Logopeda ponosi pełną odpowiedzialność za ostateczną diagnozę i plan terapii.
-        </label>
-      </div>
-      <div class="modal-btns">
-        <button class="modal-cancel" onclick="zamknijModal()">Anuluj</button>
-        <button class="modal-confirm" id="modalConfirmBtn" disabled onclick="zaakceptujIGeneruj()">TAK — Generuj diagnozę</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL PDF -->
-  <div class="modal-overlay" id="modalPdfOverlay">
-    <div class="modal">
-      <h3>⬇ Pobierz raport PDF</h3>
-      <p>Przed pobraniem raportu prosimy o ponowne potwierdzenie:</p>
-      <div class="modal-check">
-        <input type="checkbox" id="modalPdfCheckbox" onchange="document.getElementById('modalPdfConfirmBtn').disabled = !this.checked">
-        <label for="modalPdfCheckbox">
-          Potwierdzam, że zapoznałem się z diagnozą i rozumiem, że ma ona charakter <strong>wsparcia diagnostycznego</strong> i nie zastępuje pełnego badania klinicznego. Diagnoza wymaga weryfikacji przez uprawnionego specjalistę.
-        </label>
-      </div>
-      <div class="modal-btns">
-        <button class="modal-cancel" onclick="zamknijModalPdf()">Anuluj</button>
-        <button class="modal-confirm" id="modalPdfConfirmBtn" disabled onclick="pobierzPdf()">TAK — Pobierz PDF</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<script>
-const WEBHOOK_URL = "https://logoassist-n8n.grayground-769ded21.swedencentral.azurecontainerapps.io/webhook/4b1436ae-f528-4392-bd20-8f3d1529ab54";
-
-const scores = {};
-const MAX_PDF_SIZE = 20 * 1024 * 1024; // 20MB
-const MAX_PDF_COUNT = 3;
-let pdfFiles = []; // {name, base64}
-
-// Obsługa PDF
-function handleDrop(e) {
-  e.preventDefault();
-  document.getElementById('pdfDropzone').style.borderColor = '#e2e8f0';
-  handlePdfFiles(e.dataTransfer.files);
-}
-
-function handlePdfFiles(files) {
-  for (const file of files) {
-    if (file.type !== 'application/pdf') {
-      alert(`Plik "${file.name}" nie jest PDF-em.`);
-      continue;
-    }
-    if (file.size > MAX_PDF_SIZE) {
-      alert(`Plik "${file.name}" przekracza limit 20 MB.`);
-      continue;
-    }
-    if (pdfFiles.length >= MAX_PDF_COUNT) {
-      alert(`Maksymalnie ${MAX_PDF_COUNT} pliki PDF.`);
-      break;
-    }
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const base64 = e.target.result.split(',')[1];
-      pdfFiles.push({ name: file.name, base64 });
-      renderPdfLista();
-    };
-    reader.readAsDataURL(file);
-  }
-}
-
-function renderPdfLista() {
-  const lista = document.getElementById('pdfLista');
-  lista.innerHTML = pdfFiles.map((f, i) => `
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f7fafc;border-radius:8px;border:1px solid #e2e8f0">
-      <span style="font-size:18px">📄</span>
-      <span style="font-size:13px;color:#2d3748;flex:1">${f.name}</span>
-      <button onclick="usunPdf(${i})" style="background:none;border:none;cursor:pointer;color:#fc8181;font-size:18px;padding:0">×</button>
-    </div>
-  `).join('');
-}
-
-function usunPdf(i) {
-  pdfFiles.splice(i, 1);
-  renderPdfLista();
-}
-
-document.querySelectorAll('.score-btns').forEach(group => {
-  const key = group.dataset.key;
-  scores[key] = null;
-  group.querySelectorAll('.score-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const v = parseInt(btn.dataset.v);
-      scores[key] = v;
-      group.querySelectorAll('.score-btn').forEach(b => b.className = 'score-btn');
-      btn.classList.add('active-' + v);
-    });
-  });
-});
-
-document.querySelectorAll('.cb-item').forEach(item => {
-  item.addEventListener('click', (e) => {
-    // Zapobiegaj podwójnemu zdarzeniu gdy kliknięto bezpośrednio w input
-    if (e.target.tagName === 'INPUT') {
-      item.classList.toggle('active', e.target.checked);
-      return;
-    }
-    e.preventDefault();
-    const input = item.querySelector('input');
-    input.checked = !input.checked;
-    item.classList.toggle('active', input.checked);
-  });
-});
-
-async function generujDiagnoze() {
-  const wiek = document.getElementById('wiek').value;
-
-  const gloskaChecked = [...document.querySelectorAll('#gloskaGrp input:checked')].map(c => c.value);
-  const konsultacje = [...document.querySelectorAll('#konsultacjeGrp input:checked')].map(c => c.value);
-
-  const dane = {
-    // Dane ogólne
-    numer_pacjenta: document.getElementById('numer_pacjenta').value,
-    wiek: parseInt(wiek),
-    klasa: document.getElementById('klasa').value,
-    // Wywiad
-    ciaza_porod: document.getElementById('ciaza_porod').value,
-    leki_choroby: document.getElementById('leki_choroby').value,
-    rozwoj_motoryczny: document.getElementById('rozwoj_motoryczny').value,
-    rozwoj_mowy: document.getElementById('rozwoj_mowy').value,
-    czynnosci_fizjo: document.getElementById('czynnosci_fizjo').value,
-    nawyki: document.getElementById('nawyki').value,
-    choroby: document.getElementById('choroby').value,
-    wada_rodzina: document.getElementById('wada_rodzina').value,
-    oddychanie_wywiad: document.getElementById('oddychanie_wywiad').value,
-    inne_wywiad: document.getElementById('inne_wywiad').value,
-    // Badanie
-    scores,
-    gloskaChecked,
-    uwagi_artykulacja: document.getElementById('uwagi_artykulacja').value,
-    napiecie: document.getElementById('napiecie').value,
-    uwagi_badanie: document.getElementById('uwagi_badanie').value,
-    // Powód
-    powod_wizyty: document.getElementById('powod_wizyty').value,
-    opis_problemu: document.getElementById('opis_problemu').value,
-    // Konsultacje
-    konsultacje,
-    uwagi_konsultacje: document.getElementById('uwagi_konsultacje').value,
-    // Dokumenty PDF
-    pdf_dokumenty: pdfFiles.map(f => ({ name: f.name, base64: f.base64 })),
-  };
-
-  document.getElementById('submitBtn').disabled = true;
-  document.getElementById('loading').style.display = 'block';
-  document.getElementById('result').style.display = 'none';
-
-  try {
-    const res = await fetch(WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(dane)
-    });
-    const raw = await res.json();
-    wyswietlWynik(raw, dane);
-  } catch(e) {
-    alert('Błąd połączenia: ' + e.message);
-  } finally {
-    document.getElementById('submitBtn').disabled = false;
-    document.getElementById('loading').style.display = 'none';
-  }
-}
-
-function wyswietlWynik(raw, dane) {
-  let d;
-  try {
-    // Wyciągnij JSON z odpowiedzi Claude
-    let tekst = '';
-    if (raw.content && raw.content[0]) tekst = raw.content[0].text;
-    else if (raw.wynik) tekst = raw.wynik;
-    else tekst = JSON.stringify(raw);
-
-    const match = tekst.match(/```json\n?([\s\S]*?)\n?```/) || tekst.match(/(\{[\s\S]*\})/);
-    d = JSON.parse(match ? match[1] : tekst);
-  } catch(e) {
-    document.getElementById('result-content').innerHTML = '<pre style="font-size:13px;white-space:pre-wrap">' + JSON.stringify(raw, null, 2) + '</pre>';
-    document.getElementById('result').style.display = 'block';
-    document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
-    return;
-  }
-
-  const pewnosc = (d.diagnoza_glowna?.pewnosc || '').toLowerCase();
-  const pewnosscClass = pewnosc.includes('wysok') ? 'pewnosc-wysoka' : pewnosc.includes('umiar') || pewnosc.includes('sredn') ? 'pewnosc-srednia' : 'pewnosc-niska';
-
-  document.getElementById('result-meta').textContent =
-    `Pacjent nr: ${dane.numer_pacjenta || '—'}, ${dane.wiek} lat · ${new Date().toLocaleDateString('pl-PL')}`;
-
-  let html = '';
-
-  // Helper — wyciąga czytelny tekst z elementu który może być stringiem lub obiektem
-  function itemToText(item) {
-    if (!item) return '';
-    if (typeof item === 'string') return item;
-    if (typeof item === 'number') return String(item);
-    if (typeof item === 'object') {
-      if (item.obszar) {
-        let t = `<strong>${item.obszar}</strong>`;
-        if (item.stopien) t += ` (${item.stopien})`;
-        if (item.opis) t += `: ${item.opis}`;
-        if (item.znaczenie_kliniczne) t += `: ${item.znaczenie_kliniczne}`;
-        if (item.uwagi) t += `: ${item.uwagi}`;
-        return t;
-      }
-      if (item.metoda) return `<strong>${item.metoda}</strong>${item.opis ? ': ' + item.opis : ''}`;
-      if (item.typ) return `<strong>${item.typ}</strong>${item.opis ? ': ' + item.opis : ''}`;
-      if (item.specjalista) return `<strong>${item.specjalista}</strong>${item.uzasadnienie ? ': ' + item.uzasadnienie : ''}`;
-      if (item.cel) return item.cel;
-      if (item.cwiczenie) return item.cwiczenie;
-      if (item.nazwa) return item.nazwa;
-      if (item.opis) return item.opis;
-      const vals = Object.values(item).filter(v => typeof v === 'string' && v.length > 0);
-      return vals.join(' — ');
-    }
-    return String(item);
-  }
-
-  const renderList = (arr) => {
-    if (!arr) return '';
-    return (Array.isArray(arr) ? arr : [arr]).map(c => `<li>${itemToText(c)}</li>`).join('');
-  };
-
-  // Diagnoza główna
-  if (d.diagnoza_glowna) {
-    html += `<div class="diagnoza-card">
-      <h3>${d.diagnoza_glowna.nazwa || ''}</h3>
-      <div class="kod">Kod ICD: ${d.diagnoza_glowna.kod_icd || '—'}</div>
-      <span class="pewnosc-badge ${pewnosscClass}">Pewność: ${d.diagnoza_glowna.pewnosc || '—'}</span>
-      <p style="font-size:14px;line-height:1.7;color:#2d3748">${d.diagnoza_glowna.uzasadnienie || ''}</p>
-    </div>`;
-  }
-
-  // Ocena rozwojowa
-  if (d.ocena_rozwojowa) {
-    const ocena = typeof d.ocena_rozwojowa === 'object'
-      ? Object.entries(d.ocena_rozwojowa).map(([k, v]) => `<p><strong>${k.replace(/_/g,' ')}:</strong> ${v}</p>`).join('')
-      : `<p>${d.ocena_rozwojowa}</p>`;
-    html += `<div class="result-section"><h4>Ocena rozwojowa</h4>${ocena}</div>`;
-  }
-
-  // Czynniki etiologiczne (opcjonalne)
-  if (d.czynniki_etiologiczne) {
-    const ce = d.czynniki_etiologiczne;
-    let ceHtml = '';
-    const renderCzynniki = (arr) => {
-      if (!arr?.length) return '';
-      return arr.map(c => {
-        if (typeof c === 'string') return c;
-        if (typeof c === 'object') {
-          const czynnik = c.czynnik || c.nazwa || c.opis || '';
-          const znaczenie = c.znaczenie || c.uzasadnienie || '';
-          return znaczenie ? `<strong>${czynnik}</strong> — ${znaczenie}` : czynnik;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mowify.pl - Profesjonalny System dla Logopedów</title>
+    <link rel="icon" type="image/png" href="https://mowify.pl/mowify.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .animate-bounce-slow { animation: bounce 3s infinite; }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(-5%); animation-timing-function: cubic-bezier(0.8, 0, 1, 1); }
+            50% { transform: translateY(0); animation-timing-function: cubic-bezier(0, 0, 0.2, 1); }
         }
-        return String(c);
-      }).join('</li><li>');
-    };
-    if (ce.wewnetrzne?.length) ceHtml += `<p style="margin-bottom:6px;font-weight:600;color:#4a5568">Wewnętrzne:</p><ul style="padding-left:16px;margin-bottom:10px"><li>${renderCzynniki(ce.wewnetrzne)}</li></ul>`;
-    if (ce.zewnetrzne?.length) ceHtml += `<p style="margin-bottom:6px;font-weight:600;color:#4a5568">Zewnętrzne:</p><ul style="padding-left:16px;margin-bottom:10px"><li>${renderCzynniki(ce.zewnetrzne)}</li></ul>`;
-    if (ce.uwaga) ceHtml += `<p style="font-size:12px;color:#718096">${ce.uwaga}</p>`;
-    if (ceHtml) html += `<div class="result-section"><h4>Czynniki etiologiczne</h4>${ceHtml}</div>`;
-  }
+        .lucide { display: inline-block; vertical-align: middle; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
 
-  // Obszary
-  if (d.obszary_zaburzone?.length || d.obszary_w_normie?.length) {
-    html += `<div class="result-section"><h4>Obszary funkcjonowania</h4>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div>
-          <p style="font-size:12px;font-weight:700;color:#c53030;margin-bottom:8px">ZABURZONE</p>
-          <div style="display:flex;flex-direction:column;gap:6px">${(d.obszary_zaburzone || []).map(a =>
-            `<div class="tag tag-red" style="border-radius:6px;padding:6px 10px;line-height:1.5">${itemToText(a)}</div>`
-          ).join('')}</div>
+    <!-- Nawigacja -->
+    <nav id="navbar" class="fixed w-full z-50 transition-all duration-300 py-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+                <img src="https://mowify.pl/mowify.png" alt="Logo Mowify" class="w-10 h-10 object-contain drop-shadow-sm">
+                <span class="text-2xl font-bold tracking-tight text-blue-900">mowify<span class="text-blue-500">.pl</span></span>
+            </div>
+            <div class="hidden md:flex items-center gap-8">
+                <a href="#funkcje" class="text-slate-600 hover:text-blue-600 font-medium transition-colors">Funkcje</a>
+                <a href="#dlaczego-my" class="text-slate-600 hover:text-blue-600 font-medium transition-colors">Dlaczego Mowify?</a>
+                <a href="#cennik" class="text-slate-600 hover:text-blue-600 font-medium transition-colors">Cennik</a>
+                <button onclick="toggleAppModal(true)" class="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-full font-semibold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                    Aplikacja
+                </button>
+            </div>
+            <div class="md:hidden">
+                <button onclick="toggleMobileMenu()" class="p-2 text-slate-900 focus:outline-none">
+                    <i data-lucide="menu" id="menu-icon-open" class="w-8 h-8"></i>
+                    <i data-lucide="x" id="menu-icon-close" class="w-8 h-8 hidden"></i>
+                </button>
+            </div>
         </div>
-        <div>
-          <p style="font-size:12px;font-weight:700;color:#276749;margin-bottom:8px">W NORMIE</p>
-          <div style="display:flex;flex-direction:column;gap:6px">${(d.obszary_w_normie || []).map(a =>
-            `<div class="tag tag-green" style="border-radius:6px;padding:6px 10px;line-height:1.5">${itemToText(a)}</div>`
-          ).join('')}</div>
+    </nav>
+
+    <!-- Menu Mobilne -->
+    <div id="mobile-menu" class="fixed inset-0 z-40 bg-white pt-24 px-6 hidden md:hidden flex-col gap-6 text-xl">
+        <a href="#funkcje" class="font-medium text-slate-800" onclick="toggleMobileMenu()">Funkcje</a>
+        <a href="#dlaczego-my" class="font-medium text-slate-800" onclick="toggleMobileMenu()">Dlaczego Mowify?</a>
+        <a href="#cennik" class="font-medium text-slate-800" onclick="toggleMobileMenu()">Cennik</a>
+        <hr class="border-slate-100">
+        <button onclick="toggleAppModal(true); toggleMobileMenu()" class="bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg">Aplikacja</button>
+    </div>
+
+    <!-- Hero -->
+    <section class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-slate-50">
+        <div class="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-[600px] h-[600px] bg-blue-100 rounded-full blur-3xl opacity-50 z-0"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <div class="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full text-blue-700 text-sm font-semibold mb-6">
+                        <i data-lucide="award" class="w-4 h-4"></i>
+                        System wspierający pracę logopedy
+                    </div>
+                    <h1 class="text-5xl lg:text-6xl font-extrabold text-slate-900 leading-tight mb-6">
+                        Skup się na pacjencie, <br>
+                        <span class="text-blue-600">resztę zrobi Mowify.</span>
+                    </h1>
+                    <p class="text-xl text-slate-600 mb-8 leading-relaxed max-w-xl">
+                        Kompleksowe oprogramowanie do zarządzania gabinetem. Dokumentacja medyczna, kalendarz i baza postępów w jednym miejscu.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button onclick="toggleAppModal(true, 'register')" class="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-blue-200 hover:bg-blue-700 hover:-translate-y-1 transition-all">
+                            Zarejestruj się
+                        </button>
+                        <button class="flex items-center justify-center gap-2 bg-white border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all">
+                            Zobacz demo
+                            <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <div class="mt-8 flex items-center gap-6 text-sm text-slate-500">
+                        <span class="flex items-center gap-2"><i data-lucide="check-circle-2" class="text-green-500 w-4 h-4"></i> Pełne wsparcie</span>
+                        <span class="flex items-center gap-2"><i data-lucide="check-circle-2" class="text-green-500 w-4 h-4"></i> Zgodność z RODO</span>
+                    </div>
+                </div>
+                <div class="relative">
+                    <div class="bg-white p-4 rounded-2xl shadow-2xl border border-slate-100 rotate-2 hover:rotate-0 transition-transform duration-500">
+                        <img src="https://mowify.pl/6416860.jpg" alt="Logopeda Mowify" class="rounded-xl w-full h-[500px] object-cover bg-blue-50" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80&w=1000';">
+                        <div class="absolute -bottom-6 -left-6 bg-white p-6 rounded-xl shadow-xl border border-slate-100 animate-bounce-slow">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                    <i data-lucide="check-circle-2" class="text-green-600"></i>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-bold text-slate-800">Karta pacjenta gotowa</div>
+                                    <div class="text-xs text-slate-500">Wizyta zakończona sukcesem</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>`;
-  }
+    </section>
 
-  // Zalecenia terapeutyczne
-  if (d.zalecenia_terapeutyczne) {
-    const z = d.zalecenia_terapeutyczne;
-    const boxy = [
-      { key: 'cele_glowne', label: 'Cele główne' },
-      { key: 'cele', label: 'Cele terapii' },
-      { key: 'cele_krotkoterminowe', label: 'Cele krótkoterm.' },
-      { key: 'cele_dlugoterminowe', label: 'Cele długoterm.' },
-      { key: 'metody', label: 'Metody' },
-      { key: 'cwiczenia', label: 'Ćwiczenia' },
-      { key: 'cwiczenia_domowe', label: 'Ćwiczenia domowe' },
-      { key: 'zalecenia_dodatkowe', label: 'Zalecenia dodatkowe' },
-    ];
-    const boksyHtml = boxy
-      .filter(b => z[b.key]?.length)
-      .map(b => `<div class="zalecenia-box"><h5>${b.label}</h5><ul>${renderList(z[b.key])}</ul></div>`)
-      .join('');
-    if (boksyHtml) html += `<div class="result-section"><h4>Plan terapeutyczny</h4><div class="zalecenia-grid">${boksyHtml}</div></div>`;
-  }
+    <!-- Funkcje -->
+    <section id="funkcje" class="py-24 bg-white scroll-mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="text-blue-600 font-bold tracking-wider uppercase text-sm mb-3">Funkcje Mowify</h2>
+                <h3 class="text-4xl font-bold text-slate-900 mb-6">Wszystko, czego potrzebujesz</h3>
+                <p class="text-lg text-slate-600">Narzędzia stworzone po to, by logopedia była cyfrowa, a nie papierowa.</p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:bg-white hover:shadow-xl hover:border-blue-100 transition-all group">
+                    <div class="bg-white w-14 h-14 rounded-xl flex items-center justify-center shadow-sm mb-6 group-hover:bg-blue-600 transition-colors duration-300">
+                        <i data-lucide="brain" class="w-8 h-8 text-blue-600 group-hover:text-white"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-slate-900 mb-3">Asystent Diagnozy</h4>
+                    <p class="text-slate-600 text-sm leading-relaxed">Inteligentne wsparcie tworzenia diagnozy logopedycznej oparte na AI.</p>
+                </div>
+                <div class="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:bg-white hover:shadow-xl hover:border-blue-100 transition-all group">
+                    <div class="bg-white w-14 h-14 rounded-xl flex items-center justify-center shadow-sm mb-6 group-hover:bg-blue-600 transition-colors duration-300">
+                        <i data-lucide="file-text" class="w-8 h-8 text-blue-600 group-hover:text-white"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-slate-900 mb-3">Dokumentacja</h4>
+                    <p class="text-slate-600 text-sm leading-relaxed">Generowanie opinii i zaświadczeń za pomocą jednego kliknięcia.</p>
+                </div>
+                <div class="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:bg-white hover:shadow-xl hover:border-blue-100 transition-all group">
+                    <div class="bg-white w-14 h-14 rounded-xl flex items-center justify-center shadow-sm mb-6 group-hover:bg-blue-600 transition-colors duration-300">
+                        <i data-lucide="users" class="w-8 h-8 text-blue-600 group-hover:text-white"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-slate-900 mb-3">Baza Pacjentów</h4>
+                    <p class="text-slate-600 text-sm leading-relaxed">Szybki dostęp do historii terapii i postępów w nauce mowy.</p>
+                </div>
+                <div class="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:bg-white hover:shadow-xl hover:border-blue-100 transition-all group">
+                    <div class="bg-white w-14 h-14 rounded-xl flex items-center justify-center shadow-sm mb-6 group-hover:bg-blue-600 transition-colors duration-300">
+                        <i data-lucide="lock" class="w-8 h-8 text-blue-600 group-hover:text-white"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-slate-900 mb-3">Bezpieczeństwo</h4>
+                    <p class="text-slate-600 text-sm leading-relaxed">Pełna ochrona danych zgodnie z wytycznymi medycznymi RODO.</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-  // Konsultacje zalecane (opcjonalne)
-  if (d.konsultacje_zalecane?.length) {
-    html += `<div class="result-section"><h4>Zalecane konsultacje</h4>
-      <div class="zalecenia-grid">
-        ${d.konsultacje_zalecane.map(k => `<div class="zalecenia-box">
-          <h5>${k.specjalista || ''}</h5>
-          <p style="font-size:13px;color:#4a5568;line-height:1.5">${k.uzasadnienie || ''}</p>
-        </div>`).join('')}
-      </div>
-    </div>`;
-  }
+    <!-- Dlaczego My -->
+    <section id="dlaczego-my" class="py-24 bg-slate-50 scroll-mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                <div>
+                    <h2 class="text-blue-600 font-bold tracking-wider uppercase text-sm mb-3">Dlaczego Mowify?</h2>
+                    <h3 class="text-4xl font-bold text-slate-900 mb-8 leading-tight">Zaprojektowane z myślą o realiach pracy logopedy</h3>
+                    <div class="space-y-8">
+                        <div class="flex gap-4">
+                            <div class="bg-blue-100 p-3 rounded-xl h-fit"><i data-lucide="clock" class="text-blue-600 w-6 h-6"></i></div>
+                            <div>
+                                <h4 class="font-bold text-xl text-slate-900 mb-2">Odzyskaj 5 godzin tygodniowo</h4>
+                                <p class="text-slate-600">Automatyzacja wpisów do kart i generowanie opinii skracają czas pracy administracyjnej do minimum.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="bg-blue-100 p-3 rounded-xl h-fit"><i data-lucide="trending-up" class="text-blue-600 w-6 h-6"></i></div>
+                            <div>
+                                <h4 class="font-bold text-xl text-slate-900 mb-2">Buduj profesjonalny wizerunek</h4>
+                                <p class="text-slate-600">Nowoczesna karta pacjenta pokazuje rodzicom, że Twój gabinet działa na najwyższym poziomie.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="bg-blue-100 p-3 rounded-xl h-fit"><i data-lucide="shield-check" class="text-blue-600 w-6 h-6"></i></div>
+                            <div>
+                                <h4 class="font-bold text-xl text-slate-900 mb-2">Śpij spokojnie dzięki RODO</h4>
+                                <p class="text-slate-600">Twoje dane są szyfrowane i zabezpieczone na serwerach spełniających wymogi medyczne.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-blue-600 rounded-3xl p-12 text-white relative overflow-hidden shadow-2xl">
+                    <i data-lucide="quote" class="absolute -top-6 -left-6 w-32 h-32 opacity-10"></i>
+                    <p class="text-2xl font-medium mb-8 relative z-10 italic">"Mowify zmieniło sposób, w jaki prowadzę swój gabinet. Koniec z przepisywaniem notatek po nocach."</p>
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center font-bold">AK</div>
+                        <div>
+                            <p class="font-bold">Anna Kowalska</p>
+                            <p class="text-blue-100 text-sm">Neurologopeda kliniczny</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-  // Rokowanie
-  if (d.rokowanie) {
-    let rokHtml = '';
-    if (typeof d.rokowanie === 'string') {
-      rokHtml = `<p>${d.rokowanie}</p>`;
-    } else if (typeof d.rokowanie === 'object') {
-      const ocena = d.rokowanie.ocena || d.rokowanie.prognoza || '';
-      const uzas = d.rokowanie.uzasadnienie || d.rokowanie.uwagi || '';
-      if (ocena) rokHtml += `<p><strong>${ocena}</strong>${uzas ? ' — ' + uzas : ''}</p>`;
-      else if (uzas) rokHtml += `<p>${uzas}</p>`;
-      const pozyt = d.rokowanie.czynniki_sprzyjajace || d.rokowanie.czynniki_pozytywne || [];
-      const negat = d.rokowanie.czynniki_utrudniajace || d.rokowanie.czynniki_negatywne || [];
-      if (pozyt.length) rokHtml += `<p style="margin-top:8px;font-size:13px;color:#276749"><strong>Czynniki sprzyjające:</strong> ${pozyt.join(', ')}</p>`;
-      if (negat.length) rokHtml += `<p style="margin-top:4px;font-size:13px;color:#c53030"><strong>Czynniki utrudniające:</strong> ${negat.join(', ')}</p>`;
-    }
-    html += `<div class="result-section"><h4>Rokowanie</h4>${rokHtml}</div>`;
-  }
+    <!-- Cennik -->
+    <section id="cennik" class="py-24 bg-white scroll-mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="text-blue-600 font-bold tracking-wider uppercase text-sm mb-3">Cennik</h2>
+                <h3 class="text-4xl font-bold text-slate-900 mb-6">Wybierz plan dla swojego gabinetu</h3>
+                <p class="text-lg text-slate-600">Profesjonalne narzędzia w przejrzystych cenach.</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-8 items-start max-w-4xl mx-auto">
+                <div class="p-8 rounded-3xl bg-white border-2 border-blue-600 shadow-xl relative scale-105">
+                    <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Najczęściej wybierany</div>
+                    <h4 class="text-xl font-bold text-slate-900 mb-2">Plan Pro</h4>
+                    <p class="text-slate-500 text-sm mb-6">Idealny dla prywatnych gabinetów</p>
+                    <div class="mb-8"><span class="text-4xl font-extrabold">59 zł</span><span class="text-slate-400">/mies.</span></div>
+                    <ul class="space-y-4 mb-8 text-slate-600 font-medium">
+                        <li class="flex items-center gap-2 text-sm"><i data-lucide="check" class="text-blue-600 w-4 h-4"></i> Nielimitowani pacjenci</li>
+                        <li class="flex items-center gap-2 text-sm"><i data-lucide="check" class="text-blue-600 w-4 h-4"></i> Asystent diagnozy AI</li>
+                        <li class="flex items-center gap-2 text-sm"><i data-lucide="check" class="text-blue-600 w-4 h-4"></i> Generator dokumentacji</li>
+                        <li class="flex items-center gap-2 text-sm"><i data-lucide="check" class="text-blue-600 w-4 h-4"></i> Plan terapeutyczny AI</li>
+                    </ul>
+                    <button onclick="toggleAppModal(true, 'register')" class="w-full py-4 px-6 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all">Zarejestruj się</button>
+                </div>
+                <div class="p-8 rounded-3xl border border-slate-200 hover:border-blue-200 transition-all bg-white">
+                    <h4 class="text-xl font-bold text-slate-900 mb-2">Klinika</h4>
+                    <p class="text-slate-500 text-sm mb-6">Dla placówek wielostanowiskowych</p>
+                    <div class="mb-8"><span class="text-4xl font-extrabold">149 zł</span><span class="text-slate-400">/mies.</span></div>
+                    <ul class="space-y-4 mb-8 text-slate-600">
+                        <li class="flex items-center gap-2 text-sm"><i data-lucide="check" class="text-green-500 w-4 h-4"></i> Do 5 kont logopedów</li>
+                        <li class="flex items-center gap-2 text-sm"><i data-lucide="check" class="text-green-500 w-4 h-4"></i> Wszystko z planu Pro</li>
+                        <li class="flex items-center gap-2 text-sm"><i data-lucide="check" class="text-green-500 w-4 h-4"></i> Raporty finansowe</li>
+                        <li class="flex items-center gap-2 text-sm"><i data-lucide="check" class="text-green-500 w-4 h-4"></i> Dedykowany opiekun</li>
+                    </ul>
+                    <button onclick="toggleAppModal(true, 'register')" class="w-full py-3 px-6 rounded-xl border-2 border-slate-900 text-slate-900 font-bold hover:bg-slate-50 transition-colors">Zarejestruj się</button>
+                </div>
+            </div>
+            <p class="text-center mt-12 text-slate-400 text-sm italic">Wszystkie ceny są cenami netto. Przy płatności rocznej 2 miesiące gratis.</p>
+        </div>
+    </section>
 
-  // Źródła
-  if (d.zrodla_bibliograficzne?.length) {
-    html += `<div class="zrodla"><h4>Źródła bibliograficzne</h4>
-      ${d.zrodla_bibliograficzne.map((z, i) => {
-        const nr = z.numer ?? z.nr ?? z.id ?? (i + 1);
-        const opis = z.opis ?? z.tytul ?? z.title ?? z.autor ?? itemToText(z);
-        return `<div class="zrodlo-item">[${nr}] ${opis}</div>`;
-      }).join('')}
-    </div>`;
-  }
+    <!-- Statystyki -->
+    <section class="py-20 bg-blue-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="grid md:grid-cols-3 gap-12">
+                <div><div class="text-5xl font-extrabold mb-2">500+</div><div class="text-blue-200 font-medium">Specjalistów</div></div>
+                <div><div class="text-5xl font-extrabold mb-2">12k+</div><div class="text-blue-200 font-medium">Pacjentów</div></div>
+                <div><div class="text-5xl font-extrabold mb-2">99%</div><div class="text-blue-200 font-medium">Zadowolenia</div></div>
+            </div>
+        </div>
+    </section>
 
-  html += `<p class="disclaimer">Niniejszy raport stanowi wsparcie diagnostyczne dla logopedy i nie zastępuje pełnego badania klinicznego. Diagnoza wymaga weryfikacji przez uprawnionego specjalistę.</p>`;
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-100 py-12 text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="flex items-center justify-center gap-2 mb-6">
+                <img src="https://mowify.pl/mowify.png" alt="Logo Mowify" class="w-8 h-8 object-contain">
+                <span class="text-xl font-bold text-blue-900">mowify.pl</span>
+            </div>
+            <p class="text-sm">© 2024 Mowify.pl. Oprogramowanie dedykowane logopedom. Wszystkie prawa zastrzeżone.</p>
+        </div>
+    </footer>
 
-  document.getElementById('result-content').innerHTML = html;
-  document.getElementById('result').style.display = 'block';
-  document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
-}
+    <!-- Modal Aplikacja (Logowanie + Rejestracja) -->
+    <div id="app-modal" class="fixed inset-0 z-[60] flex items-center justify-center px-4 hidden">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="toggleAppModal(false)"></div>
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md relative z-10 overflow-hidden transform scale-95 transition-all duration-300" id="app-modal-container">
+            
+            <!-- Header z tabs -->
+            <div class="bg-blue-600 p-6 text-white">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <img src="https://mowify.pl/mowify.png" alt="Mowify" class="w-8 h-8 object-contain">
+                        <span class="font-bold text-lg">mowify.pl</span>
+                    </div>
+                    <button onclick="toggleAppModal(false)" class="text-white/70 hover:text-white transition-colors">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <!-- Tabs -->
+                <div class="flex bg-blue-700/50 rounded-xl p-1">
+                    <button id="tab-login" onclick="switchAppTab('login')" class="flex-1 py-2 rounded-lg text-sm font-semibold transition-all bg-white text-blue-600">
+                        Zaloguj się
+                    </button>
+                    <button id="tab-register" onclick="switchAppTab('register')" class="flex-1 py-2 rounded-lg text-sm font-semibold transition-all text-white/80">
+                        Zarejestruj się
+                    </button>
+                </div>
+            </div>
 
-// Modal zgody przed diagnozą
-function pokazModalZgody() {
-  const wiek = document.getElementById('wiek').value;
-  if (!wiek) { alert('Uzupełnij wiek pacjenta'); return; }
-  document.getElementById('modalCheckbox').checked = false;
-  document.getElementById('modalConfirmBtn').disabled = true;
-  document.getElementById('modalOverlay').classList.add('active');
-}
+            <!-- Alert -->
+            <div id="app-alert" class="hidden mx-6 mt-4 px-4 py-3 rounded-xl text-sm font-medium"></div>
 
-function zamknijModal() {
-  document.getElementById('modalOverlay').classList.remove('active');
-}
+            <!-- Formularz logowania -->
+            <div id="form-login" class="p-6">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">E-mail</label>
+                        <input id="login-email" type="email" placeholder="twoj@email.pl" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Hasło</label>
+                        <input id="login-password" type="password" placeholder="••••••••" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                    </div>
+                    <button onclick="handleLogin()" id="login-btn" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 shadow-lg transition-all">
+                        Zaloguj się →
+                    </button>
+                </div>
+                <p class="text-center text-sm text-slate-500 mt-4">
+                    Nie masz konta? <button onclick="switchAppTab('register')" class="text-blue-600 font-bold hover:underline">Zarejestruj się</button>
+                </p>
+            </div>
 
-function zaakceptujIGeneruj() {
-  zamknijModal();
-  generujDiagnoze();
-}
+            <!-- Formularz rejestracji -->
+            <div id="form-register" class="p-6 hidden max-h-[60vh] overflow-y-auto">
+                <div class="inline-flex items-center gap-2 bg-green-50 border border-green-100 px-3 py-1 rounded-full text-green-700 text-xs font-semibold mb-4">
+                    ✓ 14 dni bezpłatnego okresu próbnego
+                </div>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Imię</label>
+                            <input id="reg-firstname" type="text" placeholder="Anna" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Nazwisko</label>
+                            <input id="reg-lastname" type="text" placeholder="Kowalska" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">E-mail</label>
+                        <input id="reg-email" type="email" placeholder="twoj@email.pl" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Hasło (min. 8 znaków)</label>
+                        <input id="reg-password" type="password" placeholder="••••••••" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <input id="reg-terms" type="checkbox" class="mt-1 w-4 h-4">
+                        <label for="reg-terms" class="text-xs text-slate-500">Akceptuję regulamin oraz politykę prywatności serwisu Mowify.pl.</label>
+                    </div>
+                    <button onclick="handleRegister()" id="register-btn" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 shadow-lg transition-all">
+                        Utwórz konto →
+                    </button>
+                </div>
+                <p class="text-center text-sm text-slate-500 mt-4">
+                    Masz już konto? <button onclick="switchAppTab('login')" class="text-blue-600 font-bold hover:underline">Zaloguj się</button>
+                </p>
+            </div>
 
-// Modal PDF
-function pokazModalPdf() {
-  document.getElementById('modalPdfCheckbox').checked = false;
-  document.getElementById('modalPdfConfirmBtn').disabled = true;
-  document.getElementById('modalPdfOverlay').classList.add('active');
-}
+        </div>
+    </div>
 
-function zamknijModalPdf() {
-  document.getElementById('modalPdfOverlay').classList.remove('active');
-}
+    <script>
+        const API = 'https://logoassist-api-fcckaxewhhhfb0gz.swedencentral-01.azurewebsites.net/api';
 
-async function pobierzPdf() {
-  zamknijModal();
-  const btn = document.querySelector('.pdf-btn');
-  btn.textContent = '⏳ Generuję PDF...';
-  btn.disabled = true;
+        // Sprawdź czy już zalogowany
+        const existingToken = localStorage.getItem('logoassist_token');
+        const existingUser = JSON.parse(localStorage.getItem('logoassist_user') || '{}');
+        if (existingToken && existingUser.role) {
+            // Pokaż przycisk "Przejdź do panelu" zamiast "Aplikacja"
+        }
 
-  try {
-    const { jsPDF } = window.jspdf;
-    const element = document.getElementById('result');
-    const canvas = await html2canvas(element, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      logging: false
-    });
+        function initIcons() {
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            else setTimeout(initIcons, 100);
+        }
+        initIcons();
 
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const margin = 10;
-    const imgWidth = pageWidth - margin * 2;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    const pageContentHeight = pageHeight - margin * 2;
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 20) {
+                nav.classList.add('bg-white/80', 'backdrop-blur-md', 'shadow-sm', 'py-2');
+                nav.classList.remove('py-4');
+            } else {
+                nav.classList.remove('bg-white/80', 'backdrop-blur-md', 'shadow-sm', 'py-2');
+                nav.classList.add('py-4');
+            }
+        });
 
-    let renderedHeight = 0;
-    while (renderedHeight < imgHeight) {
-      if (renderedHeight > 0) pdf.addPage();
-      const sliceHeight = Math.min(pageContentHeight, imgHeight - renderedHeight);
-      const srcY = (renderedHeight / imgHeight) * canvas.height;
-      const srcH = (sliceHeight / imgHeight) * canvas.height;
+        function toggleAppModal(show, tab) {
+            const modal = document.getElementById('app-modal');
+            const container = document.getElementById('app-modal-container');
+            if (show) {
+                modal.classList.remove('hidden');
+                setTimeout(() => { container.classList.remove('scale-95'); container.classList.add('scale-100'); }, 10);
+                document.body.style.overflow = 'hidden';
+                if (tab) switchAppTab(tab);
+                hideAlert();
+            } else {
+                container.classList.add('scale-95');
+                container.classList.remove('scale-100');
+                setTimeout(() => modal.classList.add('hidden'), 200);
+                document.body.style.overflow = 'auto';
+            }
+        }
 
-      const tmp = document.createElement('canvas');
-      tmp.width = canvas.width;
-      tmp.height = srcH;
-      tmp.getContext('2d').drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
-      pdf.addImage(tmp.toDataURL('image/png'), 'PNG', margin, margin, imgWidth, sliceHeight);
-      renderedHeight += sliceHeight;
-    }
+        function switchAppTab(tab) {
+            const isLogin = tab === 'login';
+            document.getElementById('form-login').classList.toggle('hidden', !isLogin);
+            document.getElementById('form-register').classList.toggle('hidden', isLogin);
+            document.getElementById('tab-login').className = `flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${isLogin ? 'bg-white text-blue-600' : 'text-white/80'}`;
+            document.getElementById('tab-register').className = `flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${!isLogin ? 'bg-white text-blue-600' : 'text-white/80'}`;
+            hideAlert();
+        }
 
-    const meta = document.getElementById('result-meta').textContent;
-    pdf.save(`LogoAssist_${meta.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
-  } catch(e) {
-    alert('Błąd generowania PDF: ' + e.message);
-  } finally {
-    btn.textContent = '⬇ Pobierz PDF';
-    btn.disabled = false;
-  }
-}
+        function showAlert(msg, type) {
+            const el = document.getElementById('app-alert');
+            el.textContent = msg;
+            el.className = type === 'error'
+                ? 'mx-6 mt-4 px-4 py-3 rounded-xl text-sm font-medium bg-red-50 text-red-700 border border-red-200'
+                : 'mx-6 mt-4 px-4 py-3 rounded-xl text-sm font-medium bg-green-50 text-green-700 border border-green-200';
+        }
 
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('modalOverlay').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('modalOverlay')) zamknijModal();
-  });
-  document.getElementById('modalPdfOverlay').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('modalPdfOverlay')) zamknijModalPdf();
-  });
-});
-</script>
+        function hideAlert() {
+            document.getElementById('app-alert').className = 'hidden';
+        }
+
+        async function handleLogin() {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            if (!email || !password) { showAlert('Wypełnij wszystkie pola', 'error'); return; }
+
+            const btn = document.getElementById('login-btn');
+            btn.disabled = true; btn.textContent = 'Logowanie...';
+
+            try {
+                const res = await fetch(`${API}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (!res.ok) { showAlert(data.error || 'Błąd logowania', 'error'); return; }
+
+                localStorage.setItem('logoassist_token', data.token);
+                localStorage.setItem('logoassist_user', JSON.stringify(data.user));
+
+                if (data.user.role === 'admin') window.location.href = 'admin.html';
+                else window.location.href = 'panel.html';
+            } catch(e) {
+                showAlert('Błąd połączenia z serwerem', 'error');
+            } finally {
+                btn.disabled = false; btn.textContent = 'Zaloguj się →';
+            }
+        }
+
+        async function handleRegister() {
+            const first_name = document.getElementById('reg-firstname').value.trim();
+            const last_name = document.getElementById('reg-lastname').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const terms = document.getElementById('reg-terms').checked;
+
+            if (!first_name || !last_name || !email || !password) { showAlert('Wypełnij wszystkie pola', 'error'); return; }
+            if (password.length < 8) { showAlert('Hasło musi mieć min. 8 znaków', 'error'); return; }
+            if (!terms) { showAlert('Zaakceptuj regulamin', 'error'); return; }
+
+            const btn = document.getElementById('register-btn');
+            btn.disabled = true; btn.textContent = 'Tworzenie konta...';
+
+            try {
+                const res = await fetch(`${API}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, first_name, last_name })
+                });
+                const data = await res.json();
+                if (!res.ok) { showAlert(data.error || 'Błąd rejestracji', 'error'); return; }
+
+                showAlert('Konto utworzone! Oczekuje na zatwierdzenie przez administratora.', 'success');
+                setTimeout(() => { switchAppTab('login'); }, 3000);
+            } catch(e) {
+                showAlert('Błąd połączenia z serwerem', 'error');
+            } finally {
+                btn.disabled = false; btn.textContent = 'Utwórz konto →';
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const loginVisible = !document.getElementById('form-login').classList.contains('hidden');
+                if (loginVisible) handleLogin(); else handleRegister();
+            }
+            if (e.key === 'Escape') toggleAppModal(false);
+        });
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const iconOpen = document.getElementById('menu-icon-open');
+            const iconClose = document.getElementById('menu-icon-close');
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden'); menu.classList.add('flex');
+                iconOpen.classList.add('hidden'); iconClose.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            } else {
+                menu.classList.add('hidden'); menu.classList.remove('flex');
+                iconOpen.classList.remove('hidden'); iconClose.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
+        }
+    </script>
 </body>
 </html>

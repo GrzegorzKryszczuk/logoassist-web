@@ -507,7 +507,7 @@ function showPage(name) {
 
 async function loadUsers() {
   try {
-    const res = await fetch(`${API}/admin/users`, {
+    const res = await fetch(`${API}/logopedzi`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (res.status === 401 || res.status === 403) { logout(); return; }
@@ -601,7 +601,7 @@ function renderUsers(users) {
 
 async function approveUser(userId) {
   try {
-    const res = await fetch(`${API}/admin/users/${userId}`, {
+    const res = await fetch(`${API}/logopedzi/${userId}`, {
       method: 'PATCH',
       headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ is_approved: true, is_active: true })
@@ -620,7 +620,7 @@ async function approveUser(userId) {
 
 async function quickToggle(userId, isActive) {
   try {
-    const res = await fetch(`${API}/admin/users/${userId}`, {
+    const res = await fetch(`${API}/logopedzi/${userId}`, {
       method: 'PATCH',
       headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ is_active: !isActive })
@@ -653,7 +653,7 @@ async function saveUserEdit() {
   const is_approved = document.getElementById('editApproved').value === 'true';
 
   try {
-    const res = await fetch(`${API}/admin/users/${editingUserId}`, {
+    const res = await fetch(`${API}/logopedzi/${editingUserId}`, {
       method: 'PATCH',
       headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ plan, is_active, is_approved })

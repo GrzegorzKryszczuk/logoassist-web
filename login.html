@@ -3,36 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LogoAssist — Logowanie</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>Mowify — Logowanie</title>
+<link rel="icon" type="image/png" href="https://mowify.pl/mowify.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --navy: #1a3d5c;
-    --blue: #2c5f8a;
-    --sky: #4a9ebe;
-    --mint: #5dbea3;
-    --cream: #f8f5f0;
-    --warm: #e8e0d5;
-    --text: #1a202c;
-    --muted: #6b7280;
-    --error: #dc2626;
-    --success: #059669;
-  }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--cream);
+    font-family: 'Inter', sans-serif;
+    background: #f8fafc;
     min-height: 100vh;
     display: flex;
     overflow: hidden;
   }
 
-  /* Lewa strona — dekoracyjna */
+  /* Lewa strona */
   .side-panel {
     width: 45%;
-    background: linear-gradient(160deg, var(--navy) 0%, var(--blue) 60%, var(--sky) 100%);
+    background: linear-gradient(160deg, #1e3a5f 0%, #1d4ed8 60%, #3b82f6 100%);
     position: relative;
     display: flex;
     flex-direction: column;
@@ -55,14 +43,11 @@
     position: absolute;
     width: 300px; height: 300px;
     border-radius: 50%;
-    background: rgba(93,190,163,0.12);
+    background: rgba(59,130,246,0.15);
     bottom: -60px; left: -60px;
   }
 
-  .brand {
-    position: relative;
-    z-index: 1;
-  }
+  .brand { position: relative; z-index: 1; }
 
   .brand-logo {
     display: flex;
@@ -71,28 +56,24 @@
     margin-bottom: 48px;
   }
 
-  .brand-icon {
-    width: 48px; height: 48px;
-    background: rgba(255,255,255,0.15);
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.2);
+  .brand-logo img {
+    width: 44px; height: 44px;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
   }
 
   .brand-name {
-    font-family: 'DM Serif Display', serif;
     font-size: 26px;
+    font-weight: 800;
     color: white;
     letter-spacing: -0.5px;
   }
 
+  .brand-name span { color: #93c5fd; }
+
   .side-headline {
-    font-family: 'DM Serif Display', serif;
-    font-size: 42px;
+    font-size: 40px;
+    font-weight: 800;
     line-height: 1.15;
     color: white;
     margin-bottom: 20px;
@@ -101,7 +82,8 @@
 
   .side-headline em {
     font-style: italic;
-    color: #a8d8ea;
+    color: #93c5fd;
+    font-weight: 700;
   }
 
   .side-desc {
@@ -112,11 +94,7 @@
     margin-bottom: 48px;
   }
 
-  .side-features {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
+  .side-features { display: flex; flex-direction: column; gap: 14px; }
 
   .feature-item {
     display: flex;
@@ -124,54 +102,62 @@
     gap: 12px;
     color: rgba(255,255,255,0.8);
     font-size: 14px;
+    font-weight: 500;
   }
 
   .feature-dot {
     width: 8px; height: 8px;
     border-radius: 50%;
-    background: var(--mint);
+    background: #4ade80;
     flex-shrink: 0;
   }
 
-  /* Prawa strona — formularz */
+  /* Prawa strona */
   .form-panel {
     flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 40px;
-    background: var(--cream);
+    background: #f8fafc;
   }
 
-  .form-container {
-    width: 100%;
-    max-width: 420px;
+  .form-container { width: 100%; max-width: 420px; }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    margin-bottom: 32px;
+    transition: color 0.2s;
   }
 
-  .form-header {
-    margin-bottom: 36px;
-  }
+  .back-link:hover { color: #1d4ed8; }
+  .back-link::before { content: '←'; }
+
+  .form-header { margin-bottom: 28px; }
 
   .form-title {
-    font-family: 'DM Serif Display', serif;
-    font-size: 32px;
-    color: var(--navy);
-    margin-bottom: 8px;
+    font-size: 28px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 6px;
     letter-spacing: -0.5px;
   }
 
-  .form-subtitle {
-    font-size: 14px;
-    color: var(--muted);
-  }
+  .form-subtitle { font-size: 14px; color: #64748b; }
 
   /* Tabs */
   .tabs {
     display: flex;
-    background: var(--warm);
+    background: #e2e8f0;
     border-radius: 12px;
     padding: 4px;
-    margin-bottom: 32px;
+    margin-bottom: 28px;
   }
 
   .tab-btn {
@@ -180,81 +166,72 @@
     border: none;
     background: none;
     border-radius: 9px;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 14px;
-    font-weight: 500;
-    color: var(--muted);
+    font-weight: 600;
+    color: #64748b;
     cursor: pointer;
     transition: all 0.2s;
   }
 
   .tab-btn.active {
     background: white;
-    color: var(--navy);
+    color: #1d4ed8;
     box-shadow: 0 1px 4px rgba(0,0,0,0.1);
   }
 
-  /* Form fields */
-  .field {
-    margin-bottom: 18px;
-  }
+  /* Fields */
+  .field { margin-bottom: 16px; }
 
   .field label {
     display: block;
     font-size: 13px;
-    font-weight: 500;
-    color: var(--text);
+    font-weight: 600;
+    color: #374151;
     margin-bottom: 6px;
   }
 
   .field input {
     width: 100%;
     padding: 12px 16px;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 14px;
-    border: 1.5px solid var(--warm);
+    border: 1.5px solid #e2e8f0;
     border-radius: 10px;
     background: white;
-    color: var(--text);
+    color: #0f172a;
     transition: border-color 0.2s;
     outline: none;
   }
 
-  .field input:focus {
-    border-color: var(--blue);
-  }
+  .field input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
 
-  .field-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
   .submit-btn {
     width: 100%;
-    padding: 14px;
-    background: var(--navy);
+    padding: 13px;
+    background: #1d4ed8;
     color: white;
     border: none;
     border-radius: 10px;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.2s;
     margin-top: 8px;
-    position: relative;
-    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(29,78,216,0.3);
   }
 
   .submit-btn:hover {
-    background: var(--blue);
+    background: #1e40af;
     transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(26,61,92,0.3);
+    box-shadow: 0 6px 20px rgba(29,78,216,0.4);
   }
 
   .submit-btn:disabled {
-    background: #a0aec0;
+    background: #94a3b8;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
@@ -264,22 +241,13 @@
     padding: 12px 16px;
     border-radius: 10px;
     font-size: 13px;
+    font-weight: 500;
     margin-bottom: 16px;
     display: none;
   }
 
-  .alert.error {
-    background: #fef2f2;
-    color: var(--error);
-    border: 1px solid #fecaca;
-  }
-
-  .alert.success {
-    background: #f0fdf4;
-    color: var(--success);
-    border: 1px solid #bbf7d0;
-  }
-
+  .alert.error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+  .alert.success { background: #f0fdf4; color: #059669; border: 1px solid #bbf7d0; }
   .alert.show { display: block; }
 
   .trial-badge {
@@ -287,40 +255,20 @@
     align-items: center;
     gap: 6px;
     background: #f0fdf4;
-    color: var(--success);
+    color: #059669;
     border: 1px solid #bbf7d0;
     border-radius: 20px;
     padding: 4px 12px;
     font-size: 12px;
-    font-weight: 500;
-    margin-bottom: 20px;
+    font-weight: 600;
+    margin-bottom: 18px;
   }
-
-  .divider {
-    text-align: center;
-    color: var(--muted);
-    font-size: 13px;
-    margin: 16px 0;
-    position: relative;
-  }
-
-  .divider::before, .divider::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    width: 40%;
-    height: 1px;
-    background: var(--warm);
-  }
-
-  .divider::before { left: 0; }
-  .divider::after { right: 0; }
 
   .terms {
     font-size: 12px;
-    color: var(--muted);
+    color: #94a3b8;
     text-align: center;
-    margin-top: 16px;
+    margin-top: 14px;
     line-height: 1.6;
   }
 
@@ -336,19 +284,19 @@
 <div class="side-panel">
   <div class="brand">
     <div class="brand-logo">
-      <div class="brand-icon">🗣</div>
-      <span class="brand-name">LogoAssist</span>
+      <img src="https://mowify.pl/mowify.png" alt="Mowify">
+      <span class="brand-name">mowify<span>.pl</span></span>
     </div>
     <h1 class="side-headline">
-      Diagnoza logopedyczna<br>
-      wsparta przez <em>AI</em>
+      Skup się na pacjencie,<br>
+      resztę zrobi <em>Mowify.</em>
     </h1>
     <p class="side-desc">
-      Asystent diagnostyczny oparty na polskiej literaturze naukowej. Wspiera logopedów w codziennej pracy klinicznej.
+      Kompleksowe oprogramowanie dla logopedów. Diagnoza AI, baza pacjentów i dokumentacja w jednym miejscu.
     </p>
     <div class="side-features">
+      <div class="feature-item"><div class="feature-dot"></div> Asystent diagnozy oparty na AI</div>
       <div class="feature-item"><div class="feature-dot"></div> Baza 1675 fragmentów z 8 publikacji naukowych</div>
-      <div class="feature-item"><div class="feature-dot"></div> Diagnoza z cytowaniami źródeł bibliograficznych</div>
       <div class="feature-item"><div class="feature-dot"></div> Historia diagnoz i baza pacjentów</div>
       <div class="feature-item"><div class="feature-dot"></div> Plan terapeutyczny tydzień po tygodniu</div>
     </div>
@@ -358,6 +306,8 @@
 <!-- Prawa strona -->
 <div class="form-panel">
   <div class="form-container">
+
+    <a href="index.html" class="back-link">Powrót do strony głównej</a>
 
     <div class="form-header">
       <h2 class="form-title" id="formTitle">Witaj z powrotem</h2>
@@ -375,7 +325,7 @@
     <div id="loginForm">
       <div class="field">
         <label>Adres email</label>
-        <input type="email" id="loginEmail" placeholder="logopeda@klinika.pl" autocomplete="email">
+        <input type="email" id="loginEmail" placeholder="twoj@email.pl" autocomplete="email">
       </div>
       <div class="field">
         <label>Hasło</label>
@@ -399,14 +349,14 @@
       </div>
       <div class="field">
         <label>Adres email</label>
-        <input type="email" id="regEmail" placeholder="logopeda@klinika.pl">
+        <input type="email" id="regEmail" placeholder="twoj@email.pl">
       </div>
       <div class="field">
         <label>Hasło (min. 8 znaków)</label>
         <input type="password" id="regPassword" placeholder="••••••••">
       </div>
       <button class="submit-btn" onclick="handleRegister()" id="registerBtn">Utwórz konto →</button>
-      <p class="terms">Rejestrując się, akceptujesz regulamin i politykę prywatności. Konto wymaga weryfikacji przed pełnym dostępem.</p>
+      <p class="terms">Rejestrując się akceptujesz regulamin i politykę prywatności. Konto wymaga zatwierdzenia przez administratora.</p>
     </div>
 
   </div>
@@ -417,7 +367,13 @@ const API = 'https://logoassist-api-fcckaxewhhhfb0gz.swedencentral-01.azurewebsi
 
 // Sprawdź czy już zalogowany
 const token = localStorage.getItem('logoassist_token');
-if (token) window.location.href = 'panel.html';
+if (token) {
+  const user = JSON.parse(localStorage.getItem('logoassist_user') || '{}');
+  window.location.href = user.role === 'admin' ? 'admin.html' : 'panel.html';
+}
+
+// Obsłuż hash #register
+if (window.location.hash === '#register') switchTab('register');
 
 function switchTab(tab) {
   const isLogin = tab === 'login';
@@ -455,18 +411,12 @@ async function handleLogin() {
       body: JSON.stringify({ email, password })
     });
     const data = await res.json();
-
     if (!res.ok) { showAlert(data.error || 'Błąd logowania', 'error'); return; }
 
     localStorage.setItem('logoassist_token', data.token);
     localStorage.setItem('logoassist_user', JSON.stringify(data.user));
 
-    if (data.user.role === 'admin') {
-      window.location.href = 'admin.html';
-    } else {
-      window.location.href = 'panel.html';
-    }
-
+    window.location.href = data.user.role === 'admin' ? 'admin.html' : 'panel.html';
   } catch(e) {
     showAlert('Błąd połączenia z serwerem', 'error');
   } finally {
@@ -495,13 +445,10 @@ async function handleRegister() {
       body: JSON.stringify({ email, password, first_name, last_name })
     });
     const data = await res.json();
-
     if (!res.ok) { showAlert(data.error || 'Błąd rejestracji', 'error'); return; }
 
-    localStorage.setItem('logoassist_token', data.token);
-    localStorage.setItem('logoassist_user', JSON.stringify(data.user));
-    window.location.href = 'panel.html';
-
+    showAlert('Konto utworzone! Oczekuje na zatwierdzenie przez administratora.', 'success');
+    setTimeout(() => switchTab('login'), 3000);
   } catch(e) {
     showAlert('Błąd połączenia z serwerem', 'error');
   } finally {
@@ -510,7 +457,6 @@ async function handleRegister() {
   }
 }
 
-// Enter key support
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
     const loginVisible = document.getElementById('loginForm').style.display !== 'none';

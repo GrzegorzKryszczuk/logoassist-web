@@ -3,29 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LogoAssist — Panel Administratora</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>Mowify — Panel Administratora</title>
+<link rel="icon" type="image/png" href="https://mowify.pl/mowify.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --navy: #1a3d5c;
-    --blue: #2c5f8a;
-    --sky: #4a9ebe;
-    --mint: #5dbea3;
-    --cream: #f8f5f0;
-    --warm: #e8e0d5;
-    --text: #1a202c;
-    --muted: #6b7280;
+    --blue: #1d4ed8;
+    --blue-dark: #1e40af;
+    --blue-light: #eff6ff;
+    --sidebar-bg: #1e3a5f;
+    --text: #0f172a;
+    --muted: #64748b;
     --error: #dc2626;
     --success: #059669;
     --sidebar-w: 240px;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; display: flex; }
+  body { font-family: 'Inter', sans-serif; background: #f8fafc; color: var(--text); min-height: 100vh; display: flex; }
 
   .sidebar {
     width: var(--sidebar-w);
-    background: #0f2236;
+    background: var(--sidebar-bg);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -42,21 +41,20 @@
     margin-bottom: 12px;
   }
 
-  .sidebar-logo-icon {
-    width: 36px; height: 36px;
-    background: rgba(255,255,255,0.12);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
+  .sidebar-logo img {
+    width: 32px; height: 32px;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
   }
 
   .sidebar-logo-text {
-    font-family: 'DM Serif Display', serif;
     font-size: 20px;
+    font-weight: 800;
     color: white;
+    letter-spacing: -0.5px;
   }
+
+  .sidebar-logo-text span { color: #93c5fd; }
 
   .admin-badge {
     display: inline-flex;
@@ -68,7 +66,7 @@
     border-radius: 20px;
     padding: 3px 10px;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin: 0 8px 24px;
@@ -76,7 +74,7 @@
 
   .nav-label {
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     color: rgba(255,255,255,0.3);
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -100,11 +98,11 @@
     background: none;
     width: 100%;
     text-align: left;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
   }
 
   .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
-  .nav-item.active { background: rgba(255,255,255,0.12); color: white; }
+  .nav-item.active { background: rgba(255,255,255,0.14); color: white; }
   .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
 
   .sidebar-bottom {
@@ -138,11 +136,7 @@
   .user-name { font-size: 13px; font-weight: 600; color: white; }
   .user-role { font-size: 11px; color: rgba(255,255,255,0.4); }
 
-  .main {
-    margin-left: var(--sidebar-w);
-    flex: 1;
-    padding: 32px;
-  }
+  .main { margin-left: var(--sidebar-w); flex: 1; padding: 32px; }
 
   .page { display: none; }
   .page.active { display: block; }
@@ -156,13 +150,7 @@
     gap: 12px;
   }
 
-  .page-title {
-    font-family: 'DM Serif Display', serif;
-    font-size: 28px;
-    color: var(--navy);
-    letter-spacing: -0.5px;
-  }
-
+  .page-title { font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
   .page-subtitle { font-size: 14px; color: var(--muted); margin-top: 2px; }
 
   .stats-grid {
@@ -177,10 +165,11 @@
     border-radius: 14px;
     padding: 20px;
     box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    border: 1px solid #f1f5f9;
   }
 
-  .stat-label { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
-  .stat-value { font-family: 'DM Serif Display', serif; font-size: 32px; color: var(--navy); }
+  .stat-label { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .stat-value { font-size: 32px; font-weight: 800; color: var(--text); }
   .stat-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
   .card {
@@ -189,6 +178,7 @@
     box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     overflow: hidden;
     margin-bottom: 24px;
+    border: 1px solid #f1f5f9;
   }
 
   .card-header {
@@ -199,7 +189,7 @@
     align-items: center;
   }
 
-  .card-title { font-size: 15px; font-weight: 600; color: var(--navy); }
+  .card-title { font-size: 15px; font-weight: 700; color: var(--text); }
 
   .search-bar {
     display: flex;
@@ -211,9 +201,9 @@
   .search-bar input {
     flex: 1;
     padding: 9px 14px;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 14px;
-    border: 1.5px solid var(--warm);
+    border: 1.5px solid #e2e8f0;
     border-radius: 10px;
     outline: none;
     transition: border-color 0.2s;
@@ -223,9 +213,9 @@
 
   .search-bar select {
     padding: 9px 14px;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 14px;
-    border: 1.5px solid var(--warm);
+    border: 1.5px solid #e2e8f0;
     border-radius: 10px;
     outline: none;
     background: white;
@@ -233,7 +223,7 @@
   }
 
   table { width: 100%; border-collapse: collapse; }
-  th { padding: 12px 24px; text-align: left; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; background: #f8fafc; border-bottom: 1px solid #f1f5f9; }
+  th { padding: 12px 24px; text-align: left; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; background: #f8fafc; border-bottom: 1px solid #f1f5f9; }
   td { padding: 14px 24px; font-size: 14px; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
   tr:last-child td { border-bottom: none; }
   tr:hover td { background: #f8fafc; }
@@ -251,8 +241,6 @@
   .status-active { background: #f0fdf4; color: #059669; border: 1px solid #bbf7d0; }
   .status-inactive { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
   .status-pending { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
-  .btn-approve { background: #f0fdf4; color: #059669; border: 1px solid #bbf7d0; }
-  .btn-approve:hover { background: #dcfce7; }
 
   .plan-badge {
     display: inline-block;
@@ -264,6 +252,7 @@
     letter-spacing: 0.05em;
   }
 
+  .plan-free { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
   .plan-trial { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
   .plan-basic { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
   .plan-pro { background: #f0fdf4; color: #059669; border: 1px solid #bbf7d0; }
@@ -274,24 +263,27 @@
     gap: 6px;
     padding: 8px 14px;
     border-radius: 8px;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     border: none;
     transition: all 0.15s;
   }
 
+  .btn-approve { background: #f0fdf4; color: #059669; border: 1px solid #bbf7d0; }
+  .btn-approve:hover { background: #dcfce7; }
   .btn-activate { background: #f0fdf4; color: #059669; border: 1px solid #bbf7d0; }
   .btn-activate:hover { background: #dcfce7; }
   .btn-deactivate { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
   .btn-deactivate:hover { background: #fee2e2; }
-  .btn-primary { background: var(--navy); color: white; }
-  .btn-primary:hover { background: var(--blue); }
+  .btn-primary { background: var(--blue); color: white; box-shadow: 0 2px 8px rgba(29,78,216,0.2); }
+  .btn-primary:hover { background: var(--blue-dark); }
+  .btn-secondary { background: white; color: var(--text); border: 1.5px solid #e2e8f0; }
+  .btn-secondary:hover { border-color: var(--blue); }
 
   .actions { display: flex; gap: 6px; flex-wrap: wrap; }
 
-  /* Modal */
   .modal-overlay {
     display: none;
     position: fixed;
@@ -310,37 +302,37 @@
     max-width: 460px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.2);
   }
-  .modal-title { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--navy); margin-bottom: 8px; }
+  .modal-title { font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
   .modal-sub { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
   .modal-field { margin-bottom: 16px; }
-  .modal-field label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+  .modal-field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
   .modal-field select {
     width: 100%; padding: 10px 14px;
-    font-family: 'DM Sans', sans-serif; font-size: 14px;
-    border: 1.5px solid var(--warm); border-radius: 10px;
+    font-family: 'Inter', sans-serif; font-size: 14px;
+    border: 1.5px solid #e2e8f0; border-radius: 10px;
     outline: none; background: white; cursor: pointer;
   }
   .modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
-  .btn-cancel { background: white; color: var(--muted); border: 1.5px solid var(--warm); padding: 10px 18px; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; }
-  .btn-confirm { background: var(--navy); color: white; border: none; padding: 10px 18px; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; }
-  .btn-confirm:hover { background: var(--blue); }
+  .btn-cancel { background: white; color: var(--muted); border: 1.5px solid #e2e8f0; padding: 10px 18px; border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 14px; cursor: pointer; }
+  .btn-confirm { background: var(--blue); color: white; border: none; padding: 10px 18px; border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 8px rgba(29,78,216,0.3); }
+  .btn-confirm:hover { background: var(--blue-dark); }
 
-  .alert { padding: 12px 16px; border-radius: 10px; font-size: 13px; margin-bottom: 16px; display: none; }
+  .alert { padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; margin-bottom: 16px; display: none; }
   .alert.error { background: #fef2f2; color: var(--error); border: 1px solid #fecaca; }
   .alert.success { background: #f0fdf4; color: var(--success); border: 1px solid #bbf7d0; }
   .alert.show { display: block; }
 
   .empty-state { text-align: center; padding: 48px 24px; color: var(--muted); }
   .empty-icon { font-size: 36px; margin-bottom: 12px; }
-  .empty-text { font-size: 15px; font-weight: 500; margin-bottom: 6px; color: var(--text); }
+  .empty-text { font-size: 15px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
 </style>
 </head>
 <body>
 
 <aside class="sidebar">
   <div class="sidebar-logo">
-    <div class="sidebar-logo-icon">🗣</div>
-    <span class="sidebar-logo-text">LogoAssist</span>
+    <img src="https://mowify.pl/mowify.png" alt="Mowify">
+    <span class="sidebar-logo-text">mowify<span>.pl</span></span>
   </div>
   <div class="admin-badge">⚡ Administrator</div>
 
@@ -454,6 +446,7 @@
     <div class="modal-field">
       <label>Plan</label>
       <select id="editPlan">
+        <option value="free">Free (1 diagnoza gratis)</option>
         <option value="trial">Trial (okres próbny)</option>
         <option value="basic">Basic</option>
         <option value="pro">Pro</option>
@@ -484,7 +477,7 @@
 const API = 'https://logoassist-api-fcckaxewhhhfb0gz.swedencentral-01.azurewebsites.net/api';
 
 const token = localStorage.getItem('logoassist_token');
-if (!token) window.location.href = 'index.html';
+if (!token) window.location.href = 'login.html';
 const user = JSON.parse(localStorage.getItem('logoassist_user') || '{}');
 if (user.role !== 'admin') window.location.href = 'panel.html';
 
@@ -507,7 +500,7 @@ function showPage(name) {
 
 async function loadUsers() {
   try {
-    const res = await fetch(`${API}/logopedzi`, {
+    const res = await fetch(`${API}/admin/users`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (res.status === 401 || res.status === 403) { logout(); return; }
@@ -601,7 +594,7 @@ function renderUsers(users) {
 
 async function approveUser(userId) {
   try {
-    const res = await fetch(`${API}/logopedzi/${userId}`, {
+    const res = await fetch(`${API}/admin/users/${userId}`, {
       method: 'PATCH',
       headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ is_approved: true, is_active: true })
@@ -620,7 +613,7 @@ async function approveUser(userId) {
 
 async function quickToggle(userId, isActive) {
   try {
-    const res = await fetch(`${API}/logopedzi/${userId}`, {
+    const res = await fetch(`${API}/admin/users/${userId}`, {
       method: 'PATCH',
       headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ is_active: !isActive })
@@ -653,7 +646,7 @@ async function saveUserEdit() {
   const is_approved = document.getElementById('editApproved').value === 'true';
 
   try {
-    const res = await fetch(`${API}/logopedzi/${editingUserId}`, {
+    const res = await fetch(`${API}/admin/users/${editingUserId}`, {
       method: 'PATCH',
       headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ plan, is_active, is_approved })
@@ -686,7 +679,7 @@ function showAlert(msg, type) {
 function logout() {
   localStorage.removeItem('logoassist_token');
   localStorage.removeItem('logoassist_user');
-  window.location.href = 'login.html';
+  window.location.href = 'index.html';
 }
 
 document.getElementById('modalEdit').addEventListener('click', e => {

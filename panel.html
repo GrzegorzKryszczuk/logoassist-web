@@ -476,7 +476,7 @@
       <div style="font-size:48px;margin-bottom:16px">🔍</div>
       <h3 style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--navy);margin-bottom:8px">Formularz diagnozy logopedycznej</h3>
       <p style="color:var(--muted);font-size:14px;margin-bottom:24px;max-width:400px;margin-left:auto;margin-right:auto">Wypełnij kartę diagnozy aby wygenerować diagnozę wspieraną przez AI opartą na literaturze naukowej.</p>
-      <button class="btn btn-primary" style="font-size:15px;padding:14px 28px" onclick="window.location.href='index.html'">Otwórz formularz diagnozy →</button>
+      <button class="btn btn-primary" style="font-size:15px;padding:14px 28px" onclick="window.location.href='diagnoza.html'">Otwórz formularz diagnozy →</button>
     </div>
   </div>
 
@@ -703,7 +703,7 @@ function newDiagnosisForPatient() {
   if (currentPatientId) {
     localStorage.setItem('logoassist_patient_id', currentPatientId);
   }
-  window.location.href = 'index.html';
+  window.location.href = 'diagnoza.html';
 }
 
 function closeModal(id) {
@@ -713,7 +713,7 @@ function closeModal(id) {
 function logout() {
   localStorage.removeItem('logoassist_token');
   localStorage.removeItem('logoassist_user');
-  window.location.href = 'index.html';
+  window.location.href = 'login.html';
 }
 
 document.querySelectorAll('.modal-overlay').forEach(m => {

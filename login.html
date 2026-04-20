@@ -336,7 +336,7 @@
 
     <!-- Formularz rejestracji -->
     <div id="registerForm" style="display:none">
-      <div class="trial-badge">✓ 14 dni bezpłatnego okresu próbnego</div>
+      <div class="trial-badge">✓ 1 diagnoza gratis — bez karty kredytowej</div>
       <div class="field-row">
         <div class="field">
           <label>Imię</label>
@@ -356,7 +356,7 @@
         <input type="password" id="regPassword" placeholder="••••••••">
       </div>
       <button class="submit-btn" onclick="handleRegister()" id="registerBtn">Utwórz konto →</button>
-      <p class="terms">Rejestrując się akceptujesz regulamin i politykę prywatności. Konto wymaga zatwierdzenia przez administratora.</p>
+      <p class="terms">Rejestrując się akceptujesz regulamin i politykę prywatności. Pierwsza diagnoza jest bezpłatna. Dalsze korzystanie wymaga wykupienia abonamentu. Konto wymaga zatwierdzenia przez administratora.</p>
     </div>
 
   </div>
@@ -381,7 +381,7 @@ function switchTab(tab) {
   document.getElementById('registerForm').style.display = isLogin ? 'none' : 'block';
   document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', isLogin ? i === 0 : i === 1));
   document.getElementById('formTitle').textContent = isLogin ? 'Witaj z powrotem' : 'Utwórz konto';
-  document.getElementById('formSubtitle').textContent = isLogin ? 'Zaloguj się na swoje konto logopedy' : 'Rozpocznij 14-dniowy okres próbny';
+  document.getElementById('formSubtitle').textContent = isLogin ? 'Zaloguj się na swoje konto logopedy' : 'Pierwsza diagnoza gratis, potem abonament';
   hideAlert();
 }
 
